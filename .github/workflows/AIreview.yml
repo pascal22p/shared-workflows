@@ -572,6 +572,9 @@ jobs:
           - collections
           - resource management
           - exception handling
+          - presence of unit tests for all methods
+          - use of https://github.com/hmrc/http-verbs for all http calls
+          - use of https://github.com/hmrc/play-frontend-hmrc components in views
 
           Also inspect for:
 
@@ -586,6 +589,8 @@ jobs:
           - resource leaks
           - concurrency bugs
           - error handling bugs
+          - gov.uk design system component and classes
+          - accessibility and usuability issues
 
           Only report issues that are:
 
