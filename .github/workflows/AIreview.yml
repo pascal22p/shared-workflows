@@ -482,6 +482,12 @@ jobs:
         run: |
           python3 -m pip install --quiet openai
 
+      - name: Print AI review context
+        run: |
+          echo "::group::Full context sent to LLM"
+          cat review-context/full-context.md
+          echo "::endgroup::"
+          
       # ============================================================
       # OVH REVIEW
       # ============================================================
