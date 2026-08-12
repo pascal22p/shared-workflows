@@ -7,6 +7,14 @@ on:
         description: "The Scala CI run ID that triggered this review"
         required: true
         type: string
+      model:
+        description: "the model name as defined in ovh"
+        required: true
+        type: string
+      reasoning_effort:
+        description: "reasoning depth minimum, low, medium or high"
+        required: true
+        type: string        
     secrets:
       OVH_AI_ENDPOINTS_API_KEY:
         required: true
@@ -696,7 +704,7 @@ jobs:
           """
 
           response = client.chat.completions.create(
-              model="gpt-oss-120b",
+              model="${{ inputs.model }}",
               messages=[
                   {
                       "role": "system",
@@ -708,7 +716,7 @@ jobs:
                   },
               ],
               temperature=0,
-              reasoning_effort="medium",
+              reasoning_effort="${{ inputs.reasoning_effort }}",
               max_tokens=10000,
               response_format={
                   "type": "json_object"
@@ -964,7 +972,7 @@ jobs:
                       f"**{severity} — {title}**\n\n"
                       f"{body}\n\n"
                       "_Scala 3 SemanticDB + "
-                      "OVH gpt-oss-120b_"
+                      "OVH ${{ inputs.model }}"
                   )
               })
 
@@ -989,7 +997,8 @@ jobs:
               "- Complete BEFORE source\n"
               "- Complete AFTER source\n"
               "- Complete PR diff\n"
-              "- OVH `gpt-oss-120b`\n"
+              "- Reasoning effort: `${{ inputs.reasoning_effort }}`"
+              "- OVH `${{ inputs.run_id }}`\n"
           )
 
           # --------------------------------------------------------
