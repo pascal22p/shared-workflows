@@ -523,12 +523,9 @@ jobs:
           )
 
           client = OpenAI(
-              base_url=(
-                  "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
-              ),
-              api_key=os.environ[
-                  "OVH_AI_ENDPOINTS_API_KEY"
-              ],
+              base_url="https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
+              api_key=os.environ["OVH_AI_ENDPOINTS_API_KEY"],
+              timeout=600.0,
           )
 
           system_prompt = """
@@ -708,7 +705,7 @@ jobs:
                   },
               ],
               temperature=0,
-              reasoning_effort="high",
+              reasoning_effort="medium",
               max_tokens=10000,
               response_format={
                   "type": "json_object"
