@@ -567,6 +567,12 @@ jobs:
           - givens
           - implicit resolution
 
+          Compulsary items that must present
+          - Changes must be covered with unit tests
+          - use of https://github.com/hmrc/http-verbs for all http calls
+          - use of https://github.com/hmrc/play-frontend-hmrc components in views
+          - no hardcoded constant. They must be defined in application.conf
+
           Scala 3-specific concerns:
 
           - given / using
@@ -589,9 +595,6 @@ jobs:
           - collections
           - resource management
           - exception handling
-          - presence of unit tests for all methods
-          - use of https://github.com/hmrc/http-verbs for all http calls
-          - use of https://github.com/hmrc/play-frontend-hmrc components in views
 
           Twirl template (.scala.html) concerns:
 
