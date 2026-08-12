@@ -997,8 +997,8 @@ jobs:
               "- Complete BEFORE source\n"
               "- Complete AFTER source\n"
               "- Complete PR diff\n"
-              "- Reasoning effort: `${{ inputs.reasoning_effort }}`"
-              "- OVH `${{ inputs.run_id }}`\n"
+              "- Reasoning effort: `${{ inputs.reasoning_effort }}`\n"
+              "- OVH `${{ inputs.model }}`\n"
           )
 
           # --------------------------------------------------------
