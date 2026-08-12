@@ -163,7 +163,7 @@ jobs:
             [ -z "$file" ] && continue
 
             case "$file" in
-              *.scala)
+              *.scala | *.scala.html | *.js | *.css)
                 ;;
               *)
                 continue
@@ -325,6 +325,17 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
 
+          def fence_lang(name: str) -> str:
+             if name.endswith(".scala.html"):
+                 return "html"
+             if name.endswith(".scala"):
+                 return "scala"
+             if name.endswith(".js"):
+                 return "javascript"
+             if name.endswith(".css"):
+                 return "css"
+             return ""
+
           output = Path(
               "review-context/full-context.md"
           )
@@ -394,7 +405,7 @@ jobs:
                   )
 
                   out.write(
-                      "```scala\n"
+                      f"```{fence_lang(file.name)}\n"
                   )
 
                   out.write(
@@ -429,9 +440,9 @@ jobs:
                   )
 
                   out.write(
-                      "```scala\n"
+                      f"```{fence_lang(file.name)}\n"
                   )
-
+                  
                   out.write(
                       file.read_text(
                           encoding="utf-8",
