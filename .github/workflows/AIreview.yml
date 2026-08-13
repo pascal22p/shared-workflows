@@ -245,7 +245,7 @@ jobs:
       # ============================================================
 
       - name: Scala AI review
-        uses: pascal22p/shared-workflows/actions/scala-ai-review@v1
+        uses: pascal22p/shared-workflows/actions/scala-ai-review@v2
         with:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
