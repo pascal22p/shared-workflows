@@ -40,6 +40,14 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        echo "::group::Review parameters"
+        
+        echo "model: ${{ inputs.model }}"
+        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
+        echo "run_id: ${{ inputs.run_id }}"
+        echo "pr_number: ${{ steps.pr.outputs.number }}"
+        
+        echo "::endgroup::"
         
         echo "::group::Review context directory"
         
