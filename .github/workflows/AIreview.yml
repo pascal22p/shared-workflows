@@ -165,7 +165,7 @@ jobs:
             [ -z "$file" ] && continue
 
             case "$file" in
-              *.scala | *.scala.html | *.js | *.css)
+              *.scala | *.scala.html | *.js | *.css | *.conf)
                 ;;
               *)
                 continue
