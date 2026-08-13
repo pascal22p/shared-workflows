@@ -1,0 +1,162 @@
+name: Scala AI Review
+description: Run the Scala AI review implementation
+
+inputs:
+  model:
+    description: "The OVH model name"
+    required: true
+  reasoning_effort:
+    description: "Reasoning depth"
+    required: true
+  ovh_api_key:
+    description: "OVH AI Endpoints API key"
+    required: true
+  pr_number:
+    description: "Pull request number"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m pip install --quiet protobuf openai
+
+    - name: Extract SemanticDB information
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/extract_semanticdb.py"
+
+    - name: Build AI review context
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py"
+
+    - name: Debug AI review context
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "::group::Review parameters"
+        
+        echo "model: ${{ inputs.model }}"
+        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
+        echo "run_id: ${{ inputs.run_id }}"
+        echo "pr_number: ${{ steps.pr.outputs.number }}"
+        
+        echo "::endgroup::"
+        
+        echo "::group::Review context directory"
+        
+        if [ -d "review-context" ]; then
+          echo "✓ review-context exists"
+          find review-context -type f -print
+        else
+          echo "✗ review-context DOES NOT EXIST"
+        fi
+        
+        echo "::endgroup::"
+        
+        echo "::group::BEFORE files"
+        
+        if [ -d "review-context/before" ]; then
+          for file in review-context/before/*; do
+            [ -f "$file" ] || continue
+        
+            echo
+            echo "========================================"
+            echo "FILE: $file"
+            echo "========================================"
+        
+            if [ -s "$file" ]; then
+              echo "STATUS: ✓ present"
+              echo "SIZE: $(wc -c < "$file") bytes"
+              echo "LINES: $(wc -l < "$file")"
+            else
+              echo "STATUS: ⚠ present but EMPTY"
+            fi
+        
+            echo "--- content ---"
+            sed -n '1,50p' "$file"
+            echo "--- end content ---"
+          done
+        else
+          echo "✗ review-context/before DOES NOT EXIST"
+        fi
+        
+        echo "::endgroup::"
+        
+        echo "::group::AFTER files"
+        
+        if [ -d "review-context/after" ]; then
+          for file in review-context/after/*; do
+            [ -f "$file" ] || continue
+        
+            echo
+            echo "========================================"
+            echo "FILE: $file"
+            echo "========================================"
+        
+            if [ -s "$file" ]; then
+              echo "STATUS: ✓ present"
+              echo "SIZE: $(wc -c < "$file") bytes"
+              echo "LINES: $(wc -l < "$file")"
+            else
+              echo "STATUS: ⚠ present but EMPTY"
+            fi
+        
+            echo "--- content ---"
+            sed -n '1,50p' "$file"
+            echo "--- end content ---"
+          done
+        else
+          echo "✗ review-context/after DOES NOT EXIST"
+        fi
+        
+        echo "::endgroup::"
+        
+        echo "::group::Full context sent to LLM"
+        
+        if [ -f "review-context/full-context.md" ]; then
+          echo "✓ full-context.md exists"
+          echo "SIZE: $(wc -c < review-context/full-context.md) bytes"
+          echo "LINES: $(wc -l < review-context/full-context.md)"
+        
+          if [ -s "review-context/full-context.md" ]; then
+            echo "STATUS: ✓ contains content"
+          else
+            echo "STATUS: ⚠ EMPTY"
+          fi
+        
+          echo
+          cat review-context/full-context.md
+        else
+          echo "✗ full-context.md DOES NOT EXIST"
+        fi
+        
+        echo "::endgroup::"
+
+    - name: Review with OVH
+      shell: bash
+      env:
+        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py"
+
+    - name: Publish GitHub review
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"
