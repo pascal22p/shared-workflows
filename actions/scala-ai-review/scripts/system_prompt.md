@@ -166,6 +166,8 @@ Do not report missing tests merely because no test file was supplied.
 
 Tests should verify meaningful behaviour, not merely increase line or branch coverage.
 
+If a supplied test only asserts a trivial outcome (e.g. HTTP status alone) for a changed action that returns a view or meaningful payload, and does not verify response content or view-model data, report this as insufficient coverage — this is distinct from "no test supplied" and is demonstrable from the supplied test file alone.
+
 ## SCALA 3
 
 For changed Scala, inspect where relevant:
@@ -257,6 +259,8 @@ When an abstraction is introduced, ask:
 Report unnecessary complexity only when it materially harms readability/maintainability, makes behaviour significantly harder to verify, introduces avoidable failure modes, **and** has a concrete simpler alternative.
 
 Do not report subjective style preferences or minor readability differences.
+
+Dead code: flag commented-out code, unused imports left behind by the change, or debug leftovers introduced or left untouched by this PR's diff, where the diff shows the surrounding logic was reworked.
 
 ## TWIRL
 
