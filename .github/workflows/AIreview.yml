@@ -125,31 +125,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
-          set -euo pipefail
-
-          gh api \
-            --paginate \
-            "repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
-            > pr-files.json
-
-          jq -r '.[].filename' pr-files.json \
-            > changed-files.txt
-
-          # Resolve the PR head SHA so we read build config as of this PR,
-          # not the default branch
-          HEAD_SHA=$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
-      
-          # Always include build.sbt and project/*.scala for additional context,
-          # even if untouched in this PR
-          gh api "repos/${REPOSITORY}/git/trees/${HEAD_SHA}?recursive=1" \
-          --jq '.tree[].path' \
-          | grep -E '^(build\.sbt|project/[^/]+)$' \
-          >> changed-files.txt || true
-          
-          sort -u -o changed-files.txt changed-files.txt
-          
-          echo "Changed files:"
-          cat changed-files.txt
+          bash actions/scala-ai-review/scripts/get_context_files.sh
 
       # ============================================================
       # Capture complete BEFORE and AFTER Scala files
@@ -166,72 +142,7 @@ jobs:
           BASE_SHA: ${{ env.BASE_SHA }}
           HEAD_SHA: ${{ env.HEAD_SHA }}
         run: |
-          set -euo pipefail
-
-          rm -rf review-context
-
-          mkdir -p review-context/before
-          mkdir -p review-context/after
-
-          while IFS= read -r file; do
-
-            [ -z "$file" ] && continue
-
-            case "$file" in
-              *.scala | *.scala.html | *.js | *.css | *.conf)
-                ;;
-              *)
-                continue
-                ;;
-            esac
-
-            safe_name=$(echo "$file" | sed 's#[/ ]#__#g')
-
-            echo "Reading ${file}"
-
-            # BEFORE
-
-            if gh api \
-              "repos/${REPOSITORY}/contents/${file}?ref=${BASE_SHA}" \
-              > /tmp/before.json 2>/dev/null; then
-
-              if jq -e '.content' /tmp/before.json >/dev/null 2>&1; then
-                jq -r '.content' /tmp/before.json \
-                  | tr -d '\n' \
-                  | base64 -d \
-                  > "review-context/before/${safe_name}"
-              else
-                echo "[FILE DID NOT EXIST AT BASE]" \
-                  > "review-context/before/${safe_name}"
-              fi
-
-            else
-              echo "[FILE DID NOT EXIST AT BASE]" \
-                > "review-context/before/${safe_name}"
-            fi
-
-            # AFTER
-
-            if gh api \
-              "repos/${REPOSITORY}/contents/${file}?ref=${HEAD_SHA}" \
-              > /tmp/after.json 2>/dev/null; then
-
-              if jq -e '.content' /tmp/after.json >/dev/null 2>&1; then
-                jq -r '.content' /tmp/after.json \
-                  | tr -d '\n' \
-                  | base64 -d \
-                  > "review-context/after/${safe_name}"
-              else
-                echo "[UNABLE TO READ FILE]" \
-                  > "review-context/after/${safe_name}"
-              fi
-
-            else
-              echo "[FILE DELETED BY PR]" \
-                > "review-context/after/${safe_name}"
-            fi
-
-          done < changed-files.txt
+          bash actions/scala-ai-review/scripts/read_files.sh
 
       # ============================================================
       # Get complete PR diff

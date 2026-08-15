@@ -2,18 +2,7 @@ from pathlib import Path
 
 
 def fence_lang(name: str) -> str:
-    if name.endswith(".scala.html"):
-        return "html"
-    if name.endswith(".scala"):
-        return "scala"
-    if name.endswith(".js"):
-        return "javascript"
-    if name.endswith(".css"):
-        return "css"
-    if name.endswith(".conf"):
-        return "conf"
-    return ""
-
+    return Path(name).suffix.lstrip(".")
 
 def build_context(
     output_path: Path,
@@ -27,7 +16,7 @@ def build_context(
         # ----------------------------------------------------
         # Changed files
         # ----------------------------------------------------
-        out.write("# 1. Changed files plus build.sbt, project/*\n\n")
+        out.write("# 1. Changed files plus build.sbt, project/*, doc/*\n\n")
         if changed_files_path.exists():
             out.write(changed_files_path.read_text(encoding="utf-8"))
         out.write("\n\n")
