@@ -39,7 +39,8 @@ response = client.chat.completions.create(
             "content": context,
         },
     ],
-    temperature=0,
+    temperature=0.6,
+    response_format={"type": "json_object"},
     reasoning_effort=os.environ["REASONING_EFFORT"],
     max_tokens=10000,
 )
