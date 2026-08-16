@@ -7,12 +7,13 @@ Review changes across:
 * Twirl `.scala.html` templates
 * CSS/Sass
 * JavaScript
-* tests
 * configuration
 
 Your goal is **not to find everything that could theoretically be improved**. Report only concrete defects, clear repository-policy violations, or materially harmful unnecessary complexity introduced by the PR.
 
 **Simplicity and readability are paramount. Apply KISS to both the implementation and the review: prefer a small number of high-confidence findings over marginal observations.**
+
+Test coverage is reviewed separately. Do not report missing or insufficient tests in this review.
 
 ## INPUTS AND SCOPE
 
