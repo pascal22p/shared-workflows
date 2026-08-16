@@ -125,7 +125,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
-          bash actions/scala-ai-review/scripts/get_context_files.sh
+          bash "${{ github.action_path }}/scripts/get_context_files.sh"
 
       # ============================================================
       # Capture complete BEFORE and AFTER Scala files
@@ -142,7 +142,7 @@ jobs:
           BASE_SHA: ${{ env.BASE_SHA }}
           HEAD_SHA: ${{ env.HEAD_SHA }}
         run: |
-          bash actions/scala-ai-review/scripts/read_files.sh
+          bash "${{ github.action_path }}/scripts/read_files.sh"
 
       # ============================================================
       # Get complete PR diff
