@@ -42,7 +42,7 @@ response = client.chat.completions.create(
     temperature=0.2,
     response_format={"type": "json_object"},
     reasoning_effort=os.environ["REASONING_EFFORT"],
-    max_tokens=10000,
+    max_tokens=50000,
 )
 
 choice = response.choices[0]
