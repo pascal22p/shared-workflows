@@ -45,13 +45,26 @@ response = client.chat.completions.create(
     max_tokens=10000,
 )
 
-raw = response.choices[0].message.content
+choice = response.choices[0]
+
+print(f"finish_reason: {choice.finish_reason}")
+print(f"usage: {response.usage}")
+
+raw = choice.message.content or ""
+
+print(f"response length: {len(raw)}")
+
+if choice.finish_reason == "length":
+    raise RuntimeError(
+        "OVH model response was truncated because it reached the output token limit"
+    )
 
 try:
     review = json.loads(raw)
 except json.JSONDecodeError:
-    print("Failed to parse JSON. Raw content:")
+    print("=== RAW MODEL RESPONSE START ===")
     print(raw)
+    print("=== RAW MODEL RESPONSE END ===")
     raise
 
 Path(
