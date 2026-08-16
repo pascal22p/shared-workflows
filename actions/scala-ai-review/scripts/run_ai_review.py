@@ -47,7 +47,12 @@ response = client.chat.completions.create(
 
 raw = response.choices[0].message.content
 
-review = json.loads(raw)
+try:
+    review = json.loads(raw)
+except json.JSONDecodeError:
+    print("Failed to parse JSON. Raw content:")
+    print(raw)
+    raise
 
 Path(
     "review-context/review.json"
