@@ -116,6 +116,29 @@ jobs:
           echo "SemanticDB file count: ${COUNT}"
 
       # ============================================================
+      # Download scripts
+      # ============================================================
+
+      - name: Download review scripts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          
+          mkdir -p review-scripts
+          
+          for script in get_context_files.sh read_files.sh; do
+            gh api \
+              "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review/scripts/${script}?ref=main" \
+              --jq '.content' \
+              | tr -d '\n' \
+              | base64 -d \
+              > "review-scripts/${script}"
+          
+            chmod +x "review-scripts/${script}"
+          done
+
+      # ============================================================
       # Get changed files
       # ============================================================
 
@@ -125,7 +148,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
-          bash "${{ github.action_path }}/scripts/get_context_files.sh"
+          bash review-scripts/get_context_files.sh
 
       # ============================================================
       # Capture complete BEFORE and AFTER Scala files
@@ -142,7 +165,7 @@ jobs:
           BASE_SHA: ${{ env.BASE_SHA }}
           HEAD_SHA: ${{ env.HEAD_SHA }}
         run: |
-          bash "${{ github.action_path }}/scripts/read_files.sh"
+          bash review-scripts/read_files.sh
 
       # ============================================================
       # Get complete PR diff
