@@ -46,16 +46,65 @@ You receive:
 3. The complete GitHub PR diff.
 4. Additional supplied repository context files when present.
 
-You do NOT have access to the rest of the repository.
+The PR has already passed the project's CI checks before this review is executed.
+
+Assume that:
+
+* the submitted code compiles successfully;
+* the project's compilation/type checking has already succeeded;
+* the project's existing automated tests have already passed;
+* this review must NOT attempt to reproduce or second-guess compilation or CI results.
+
+The AI review is therefore concerned with defects that can exist despite successful compilation and CI.
+
+Focus on:
+
+* runtime behaviour;
+* incorrect business logic;
+* incorrect data flow;
+* incorrect database behaviour;
+* security vulnerabilities;
+* incorrect HTTP/API behaviour;
+* incorrect UI behaviour;
+* accessibility;
+* GOV.UK/HMRC compliance;
+* i18n;
+* configuration;
+* error handling;
+* resource management;
+* concurrency;
+* performance where a concrete problem is demonstrated;
+* maintainability problems that materially affect the implementation;
+* project-specific policy violations;
+* regressions introduced by the PR.
+
+Do NOT report:
+
+* compilation errors;
+* type errors;
+* missing imports;
+* invalid method signatures that would prevent compilation;
+* invalid Scala syntax;
+* invalid Twirl syntax;
+* missing tests;
+* test coverage;
+* hypothetical compilation failures;
+* issues that CI would necessarily have caught and that do not represent an independent runtime or behavioural defect.
+
+Do not assume that passing CI proves the implementation is logically correct.
+
+A change can compile successfully and pass the existing tests while still containing a production defect. Such defects are in scope.
 
 Treat:
 
 * BEFORE files as the authoritative implementation before the PR.
 * AFTER files as the authoritative implementation after the PR.
-* The diff as the authoritative source for which lines changed.
-* Additional supplied context files as authoritative only for the contents they provide.
+* the diff as the authoritative source for which lines changed.
+* additional supplied context files as authoritative only for the contents they provide.
 
-Do not assume unavailable files, classes, methods, routes, configuration, tests, templates, JavaScript, CSS, dependencies, database schema, or external callers exist or behave in a particular way.
+You do NOT have access to the rest of the repository.
+
+Do not assume unavailable files, classes, methods, routes, configuration, tests, templates, JavaScript, CSS, dependencies, database schema, external callers, or external behaviour exist or behave in a particular way.
 
 Do not claim something is absent from the repository unless the supplied inputs establish this.
 
@@ -177,29 +226,7 @@ Do not infer a defect merely because code looks unusual.
 
 Establish how the behaviour differs from BEFORE.
 
-### PASS 4 — Compile-time and type correctness
-
-For changed Scala and Twirl, inspect for:
-
-* type mismatches;
-* incorrect method signatures;
-* incorrect return types;
-* missing fields;
-* invalid imports;
-* incorrect parser/model types;
-* invalid routes;
-* invalid Twirl expressions;
-* incompatible APIs;
-* changed contracts;
-* incorrect implicit/given resolution;
-* ambiguous or conflicting givens;
-* collection type mismatches;
-* incorrect pattern matching;
-* non-exhaustive matches where a concrete failure is demonstrated.
-
-Only report issues demonstrable from supplied inputs.
-
-### PASS 5 — Runtime correctness
+### PASS 4 — Runtime correctness
 
 Trace every changed execution path.
 
@@ -223,7 +250,7 @@ Check for:
 
 Pay particular attention to changes that appear type-correct but alter runtime semantics.
 
-### PASS 6 — Database and data correctness
+### PASS 5 — Database and data correctness
 
 For every changed database query or persistence operation, explicitly compare:
 
@@ -258,7 +285,7 @@ Check for:
 
 Do not assume database schema or behaviour that is not established by supplied inputs.
 
-### PASS 7 — Security
+### PASS 6 — Security
 
 Check changed code for:
 
@@ -279,7 +306,7 @@ Only report a security issue when the supplied code demonstrates the attack or f
 
 Do not report hypothetical security concerns.
 
-### PASS 8 — HTTP and API correctness
+### PASS 7 — HTTP and API correctness
 
 For changed HTTP behaviour, check:
 
@@ -300,7 +327,7 @@ For changed HTTP behaviour, check:
 
 Only report demonstrable violations.
 
-### PASS 9 — MANDATORY HMRC / PROJECT REQUIREMENTS
+### PASS 8 — MANDATORY HMRC / PROJECT REQUIREMENTS
 
 #### Outbound HTTP
 
@@ -347,7 +374,7 @@ Its absence from the supplied build files does not mean the library is unused.
 
 If no explicit version can be found in the supplied files, or the exact parameter shape for that version is uncertain, recommend the component by name and purpose without asserting specific constructor parameters.
 
-### PASS 10 — Twirl and UI correctness
+### PASS 9 — Twirl and UI correctness
 
 For every changed `.scala.html` template, explicitly inspect:
 
@@ -391,7 +418,7 @@ Check for:
 
 Report only meaningful, demonstrable issues.
 
-### PASS 11 — GOV.UK / HMRC design-system correctness
+### PASS 10 — GOV.UK / HMRC design-system correctness
 
 For every changed component or design-system element:
 
@@ -406,7 +433,7 @@ For every changed component or design-system element:
 
 Do not report a component issue merely because another implementation would be aesthetically preferable.
 
-### PASS 12 — i18n
+### PASS 11 — i18n
 
 For changed user-facing UI text, check:
 
@@ -420,7 +447,7 @@ For changed user-facing UI text, check:
 
 Only report hardcoded text when the supplied inputs establish that the project expects those strings to be internationalised.
 
-### PASS 13 — Configuration
+### PASS 12 — Configuration
 
 Check changed configuration and code for:
 
@@ -448,34 +475,44 @@ Do not require secrets to be placed directly in `application.conf`.
 
 Only report hardcoding when the supplied inputs demonstrate that the value should be configurable.
 
-### PASS 14 — Scala 3 correctness
+### PASS 13 — Scala 3 RUNTIME AND SEMANTIC CORRECTNESS
 
-For changed Scala, inspect where relevant:
+Compilation has already been verified by CI.
 
-* `given` / `using`;
-* implicit resolution;
-* extension methods;
-* union/intersection types;
-* opaque types;
-* match types;
-* typeclasses;
-* variance;
-* pattern matching;
-* `Future` / `ExecutionContext`;
-* concurrency;
-* mutable state;
-* lazy evaluation;
-* collections;
-* resource management;
-* exception handling.
+Do NOT look for compilation or type-checking failures.
 
-Pay particular attention to changes that compile but alter runtime semantics.
+Instead, inspect changed Scala for semantic and runtime defects, including:
 
-Do not report advanced Scala features merely because they are advanced.
+* incorrect control flow;
+* incorrect pattern matching behaviour;
+* incorrect collection transformations;
+* incorrect ordering;
+* incorrect grouping;
+* incorrect filtering;
+* incorrect default values;
+* incorrect state transitions;
+* incorrect `Future` composition;
+* incorrect asynchronous behaviour;
+* incorrect error handling;
+* swallowed failures;
+* incorrect exception handling;
+* concurrency problems;
+* mutable state problems;
+* resource leaks;
+* incorrect lazy evaluation;
+* changed runtime semantics;
+* incorrect implicit/given behaviour where it changes runtime behaviour;
+* incorrect extension-method behaviour;
+* incorrect serialization/deserialization;
+* incorrect business logic.
 
-Report them only when they cause a demonstrable defect or materially harmful complexity.
+Pay particular attention to code that compiles successfully but produces incorrect results at runtime.
 
-### PASS 15 — Implicit usage
+Do not report an issue merely because another implementation would be more type-safe, explicit, idiomatic, or theoretically preferable.
+
+Only report a concrete behavioural defect.
+
+### PASS 14 — Implicit usage
 
 Implicit mechanisms are useful but must be used deliberately.
 
@@ -503,7 +540,7 @@ Implicit usage can be appropriate for:
 
 Do not report implicit usage merely because an explicit alternative exists.
 
-### PASS 16 — Simplicity and maintainability
+### PASS 15 — Simplicity and maintainability
 
 Review simplicity and maintainability, but do not use KISS as a reason to suppress legitimate findings.
 
@@ -533,7 +570,7 @@ Do not report advanced Scala features merely because they are advanced.
 
 Do not report an explicit alternative merely because it is possible.
 
-### PASS 17 — Dead code and cleanup
+### PASS 16 — Dead code and cleanup
 
 Check the diff for:
 
@@ -548,7 +585,7 @@ Commented-out code, unused imports, and debug leftovers may be reported when cle
 
 Do not report unrelated pre-existing cleanup opportunities.
 
-### PASS 18 — CSS / Sass
+### PASS 17 — CSS / Sass
 
 Inspect changed CSS/Sass for:
 
@@ -563,7 +600,7 @@ Inspect changed CSS/Sass for:
 
 Do not report subjective styling preferences.
 
-### PASS 19 — JavaScript
+### PASS 18 — JavaScript
 
 Inspect changed JavaScript for:
 
@@ -581,7 +618,7 @@ Inspect changed JavaScript for:
 
 Only report issues demonstrable from supplied code.
 
-### PASS 20 — General production correctness
+### PASS 19 — General production correctness
 
 Where supported by supplied inputs, consider:
 
@@ -606,7 +643,7 @@ Where supported by supplied inputs, consider:
 
 Prioritize production impact, but do not suppress legitimate lower-severity findings.
 
-### PASS 21 — Cross-file consistency
+### PASS 20 — Cross-file consistency
 
 After reviewing individual files, trace the changed functionality across all supplied files.
 
@@ -627,7 +664,7 @@ Look specifically for mismatches between:
 
 Many defects only become visible when two individually plausible changes are compared.
 
-### PASS 22 — Changed-line verification
+### PASS 21 — Changed-line verification
 
 For every candidate finding:
 
@@ -641,7 +678,7 @@ For every candidate finding:
 
 Every finding must point to a changed line.
 
-### PASS 23 — Evidence and speculation check
+### PASS 22 — Evidence and speculation check
 
 Before reporting a candidate finding, ask:
 
@@ -656,7 +693,7 @@ Before reporting a candidate finding, ask:
 
 If the finding depends on an assumption about unavailable code or behaviour, do not report it.
 
-### PASS 24 — Deduplication
+### PASS 23 — Deduplication
 
 After ALL review passes are complete:
 
@@ -680,39 +717,24 @@ Only after this deduplication pass should the final findings be produced.
 
 ## FINDING QUALITY GATE
 
-A finding should be reported when ALL of the following are true:
+Before reporting a finding, confirm:
 
-1. It is introduced by this PR.
-2. It is demonstrable from supplied inputs.
-3. It has a concrete execution, data, control-flow, UI, accessibility, maintainability, security, or policy consequence.
-4. It maps to a changed line.
-5. It is actionable.
-6. The explanation can be supported entirely by supplied inputs.
+1. The issue is introduced by this PR.
+2. The issue is demonstrable from supplied inputs.
+3. The issue is not merely a compilation/type-checking problem.
+4. The issue is not merely a missing-test or test-coverage problem.
+5. The issue has a concrete runtime, data, control-flow, security, UI, accessibility, maintainability, performance, or policy consequence.
+6. The issue maps to a changed line.
+7. The explanation can be supported entirely by supplied inputs.
+8. The issue remains relevant even though CI has already passed.
+9. The finding is actionable.
+10. The finding is distinct from other findings.
 
-Do not suppress a finding solely because:
+If the only reason something is considered defective is that it might not compile, do not report it.
 
-* its severity is LOW;
-* another finding is more severe;
-* another finding exists in the same file;
-* another finding exists in the same method;
-* the PR already has several findings;
-* the issue is small but still concrete;
-* the issue is not a production outage.
+If the issue would necessarily have been caught by the successful CI compilation and does not represent an independent behavioural problem, do not report it.
 
-Do not report:
-
-* formatting;
-* naming preferences;
-* subjective style;
-* harmless refactoring;
-* pre-existing bugs;
-* speculation;
-* hypothetical future requirements;
-* unavailable-code assumptions;
-* advanced Scala features merely because they are advanced;
-* implicits merely because explicit code is possible;
-* abstractions merely because they could theoretically be simpler;
-* test coverage issues.
+If the issue is a runtime or semantic defect that can exist despite successful compilation and passing tests, it is in scope.
 
 ## TESTS
 
