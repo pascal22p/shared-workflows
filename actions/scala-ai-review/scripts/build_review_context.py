@@ -6,7 +6,6 @@ def fence_lang(name: str) -> str:
 
 def build_context(
     output_path: Path,
-    semantic_path: Path,
     changed_files_path: Path,
     before_dir: Path,
     after_dir: Path,
@@ -55,7 +54,6 @@ def build_context(
 
 def main():
     output = Path("review-context/full-context.md")
-    semantic = Path("review-context/semanticdb.md")
     changed_files = Path("changed-files.txt")
     before = Path("review-context/before")
     after = Path("review-context/after")
@@ -63,7 +61,6 @@ def main():
 
     build_context(
         output,
-        semantic,
         changed_files,
         before,
         after,
