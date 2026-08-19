@@ -24,7 +24,8 @@ system_prompt = (
 client = OpenAI(
     base_url="https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
     api_key=os.environ["OVH_AI_ENDPOINTS_API_KEY"],
-    timeout=600.0,
+    timeout=1800.0,
+    max_retries=0,
 )
 
 response = client.chat.completions.create(
