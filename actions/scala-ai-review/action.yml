@@ -15,44 +15,37 @@ inputs:
     description: "Pull request number"
     required: true
 
-outputs:
-  error:
-    description: "Error message captured if any step failed (empty on success)"
-    value: ${{ steps.outcome.outputs.error }}
-
 runs:
   using: composite
   steps:
     - name: Install Python dependencies
       shell: bash
       run: |
-        set -o pipefail
-        python3 -m pip install --quiet protobuf openai 2>&1 | tee /tmp/ai-review-step.log
-        status=${PIPESTATUS[0]}
-        if [ "$status" -ne 0 ]; then
-          echo "Install Python dependencies failed: $(tail -n 5 /tmp/ai-review-step.log | tr '\n' ' ')" > /tmp/ai-review-error.txt
-          exit "$status"
-        fi
+        set -euo pipefail
+        python3 -m pip install --quiet protobuf openai
+
+    - name: Extract SemanticDB information
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/extract_semanticdb.py"
 
     - name: Build AI review context
       shell: bash
       run: |
-        set -o pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py" 2>&1 | tee /tmp/ai-review-step.log
-        status=${PIPESTATUS[0]}
-        if [ "$status" -ne 0 ]; then
-          echo "Build AI review context failed: $(tail -n 5 /tmp/ai-review-step.log | tr '\n' ' ')" > /tmp/ai-review-error.txt
-          exit "$status"
-        fi
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py"
 
     - name: Debug AI review context
       shell: bash
       run: |
+        set -euo pipefail
         echo "::group::Review parameters"
         
         echo "model: ${{ inputs.model }}"
         echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
-        echo "pr_number: ${{ inputs.pr_number }}"
+        echo "run_id: ${{ inputs.run_id }}"
+        echo "pr_number: ${{ steps.pr.outputs.number }}"
         
         echo "::endgroup::"
         
@@ -153,13 +146,8 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
       run: |
-        set -o pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py" 2>&1 | tee /tmp/ai-review-step.log
-        status=${PIPESTATUS[0]}
-        if [ "$status" -ne 0 ]; then
-          echo "Review with OVH failed: $(tail -n 5 /tmp/ai-review-step.log | tr '\n' ' ')" > /tmp/ai-review-error.txt
-          exit "$status"
-        fi
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py"
 
     - name: Publish GitHub review
       shell: bash
@@ -170,27 +158,5 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
       run: |
-        set -o pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py" 2>&1 | tee /tmp/ai-review-step.log
-        status=${PIPESTATUS[0]}
-        if [ "$status" -ne 0 ]; then
-          echo "Publish GitHub review failed: $(tail -n 5 /tmp/ai-review-step.log | tr '\n' ' ')" > /tmp/ai-review-error.txt
-          exit "$status"
-        fi
-
-    - name: Capture outcome
-      id: outcome
-      if: always()
-      shell: bash
-      run: |
-        if [ -f /tmp/ai-review-error.txt ]; then
-          ERR=$(cat /tmp/ai-review-error.txt | tr '\n' ' ' | cut -c1-500)
-        else
-          ERR=""
-        fi
-
-        {
-          echo "error<<EOF"
-          echo "$ERR"
-          echo "EOF"
-        } >> "$GITHUB_OUTPUT"
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"

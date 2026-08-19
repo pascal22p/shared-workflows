@@ -26,7 +26,6 @@ permissions:
   contents: read
   pull-requests: write
   actions: read
-  statuses: write
 
 jobs:
   review:
@@ -85,29 +84,6 @@ jobs:
 
           echo "Base: ${BASE_SHA}"
           echo "Head: ${HEAD_SHA}"
-
-      # ============================================================
-      # Mark commit status as pending + start timer
-      # ============================================================
-
-      - name: Mark status pending
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ env.HEAD_SHA }}
-        run: |
-          set -euo pipefail
-
-          gh api \
-            "repos/${REPOSITORY}/statuses/${HEAD_SHA}" \
-            -f state=pending \
-            -f context="Scala AI Code Review" \
-            -f description="Running AI review..." \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-      - name: Record start time
-        id: timer
-        run: echo "start=$(date +%s)" >> "$GITHUB_OUTPUT"
 
       # ============================================================
       # Download SemanticDB produced by Scala CI
@@ -216,69 +192,12 @@ jobs:
       # ============================================================
 
       - name: Scala AI review
-        id: ai_review
-        continue-on-error: true
         uses: pascal22p/shared-workflows/actions/scala-ai-review@main
         with:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ steps.pr.outputs.number }}
-
-      # ============================================================
-      # Compute duration
-      # ============================================================
-
-      - name: Compute duration
-        id: duration
-        if: always()
-        run: |
-          end=$(date +%s)
-          start=${{ steps.timer.outputs.start }}
-          echo "seconds=$((end - start))" >> "$GITHUB_OUTPUT"
-
-      # ============================================================
-      # Report final commit status
-      # ============================================================
-
-      - name: Report success
-        if: steps.ai_review.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ env.HEAD_SHA }}
-        run: |
-          set -euo pipefail
-
-          gh api \
-            "repos/${REPOSITORY}/statuses/${HEAD_SHA}" \
-            -f state=success \
-            -f context="Scala AI Code Review" \
-            -f description="Completed in ${{ steps.duration.outputs.seconds }}s" \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-      - name: Report failure
-        if: steps.ai_review.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ env.HEAD_SHA }}
-        run: |
-          set -euo pipefail
-
-          ERR="${{ steps.ai_review.outputs.error }}"
-          if [ -z "$ERR" ]; then
-            ERR="Review step failed - see workflow logs"
-          fi
-          # commit status description is capped at 140 chars by GitHub's API
-          ERR=$(echo "$ERR" | tr '\n' ' ' | cut -c1-100)
-
-          gh api \
-            "repos/${REPOSITORY}/statuses/${HEAD_SHA}" \
-            -f state=failure \
-            -f context="Scala AI Code Review" \
-            -f description="Failed after ${{ steps.duration.outputs.seconds }}s: ${ERR}" \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
       # ============================================================
       # Save review context
