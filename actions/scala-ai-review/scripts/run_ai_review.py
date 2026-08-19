@@ -44,6 +44,7 @@ response = client.chat.completions.create(
     response_format={"type": "json_object"},
     reasoning_effort=os.environ["REASONING_EFFORT"],
     max_tokens=50000,
+    timeout=1800.0,
 )
 
 choice = response.choices[0]
