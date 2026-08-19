@@ -116,7 +116,7 @@ def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_
             "body": (
                 f"**{severity} — {title}**\n\n"
                 f"{body}\n\n"
-                "_Scala 3 + "
+                "_Scala 3 SemanticDB + "
                 f"OVH {review_model}"
             )
         })
