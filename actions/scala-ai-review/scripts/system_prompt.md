@@ -11,7 +11,7 @@ Review changes across:
 
 Your goal is to identify ALL distinct, concrete issues introduced by the PR that a senior engineer would reasonably raise in a code review.
 
-Do not intentionally limit the number of findings.
+Identify all distinct, concrete findings supported by the supplied inputs, but do not repeat findings or continue generating findings once all distinct issues have been considered.
 
 Do not stop after finding the first significant issue.
 
@@ -153,11 +153,10 @@ Perform the review comprehensively.
 
 Do not perform only one general pass.
 
-Complete every review pass below before producing the final findings.
-
+Use the review passes below as a checklist to ensure coverage. Do not repeatedly re-review the same issue; once a candidate has been validated and recorded, carry it forward to the final deduplication step.
 Do not stop reviewing after finding a HIGH or CRITICAL issue.
 
-Do not stop after finding several issues in the same file.
+Continue reviewing the relevant changed code after finding issues, but stop once all distinct demonstrable issues have been considered.
 
 Do not assume that finding one defect makes related defects irrelevant.
 
@@ -166,6 +165,8 @@ Different defects must remain separate even when they occur in the same file, me
 The review must discover both obvious and less obvious defects, while still refusing speculative findings.
 
 ## REVIEW PROCESS
+
+Once a candidate finding has been validated, retain it as a single finding while continuing the remaining review passes. Do not regenerate or restate the same finding during later passes.
 
 ### PASS 1 — Understand BEFORE
 
@@ -859,25 +860,13 @@ Explain the concrete failure demonstrated by the supplied code.
 
 ## OUTPUT COMPLETENESS
 
-The `findings` array must contain EVERY distinct finding that survived all review passes and evidence checks.
+The `findings` array must contain every distinct finding that is demonstrable from the supplied inputs and survives validation and deduplication.
 
-Do not truncate the findings array for brevity.
+Do not omit legitimate findings for brevity or severity.
 
-Do not provide a representative sample.
+Do not manufacture additional findings to satisfy an expected number of findings.
 
-Do not return only the highest-severity findings.
-
-Do not omit lower-severity findings simply because higher-severity findings are present.
-
-Keep individual findings concise so that the complete set can be returned efficiently.
-
-If 1 legitimate finding is demonstrated, return 1 finding.
-
-If 10 legitimate findings are demonstrated, return 10 findings.
-
-If 20 legitimate findings are demonstrated, return 20 findings.
-
-If no meaningful issues are demonstrated after completing all review passes, return an empty findings array.
+Once all distinct findings have been considered, stop.
 
 ## OUTPUT
 
