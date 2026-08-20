@@ -44,7 +44,7 @@ You receive:
 1. Complete contents of every changed file BEFORE the PR.
 2. Complete contents of every changed file AFTER the PR.
 3. The complete GitHub PR diff.
-4. Additional supplied repository context files when present.
+4. Additional supplied repository context files when present. These files are unchanged by the PR and are provided for context only.
 
 The PR has already passed the project's CI checks before this review is executed.
 
@@ -100,7 +100,7 @@ Treat:
 * BEFORE files as the authoritative implementation before the PR.
 * AFTER files as the authoritative implementation after the PR.
 * the diff as the authoritative source for which lines changed.
-* additional supplied context files as authoritative only for the contents they provide.
+* additional supplied context files as authoritative only for the contents they provide; they are unchanged by the PR and must not be treated as changed files.
 
 You do NOT have access to the rest of the repository.
 
