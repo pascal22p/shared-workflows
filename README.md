@@ -9,7 +9,6 @@ This repository contains shared GitHub Actions and workflows used for code quali
 A composite action that performs automated code reviews on Scala projects using AI via OVH AI Endpoints. It leverages SemanticDB information to provide deep, semantically aware context to the Large Language Model.
 
 #### Features
-- **Semantic Context**: ~~Uses SemanticDB to extract rich code information beyond simple text diffs.~~ **Does not work**
 - **Before/After Analysis**: Captures both original and modified versions of files for comprehensive comparison.
 - **Multi-Model Support**: Configurable to use various models available through OVH AI Endpoints.
 - **Automated Feedback**: Automatically publishes AI-generated comments as a review on the Pull Request.
@@ -23,8 +22,7 @@ A composite action that performs automated code reviews on Scala projects using 
 | `pr_number` | The number of the Pull Request to review. | Yes |
 
 #### Requirements
-- Python 3.x with `protobuf` and `openai` packages (installed automatically by the action).
-- SemanticDB artifacts generated during the build process.
+- Python 3.x with `openai` packages (installed automatically by the action).
 - An active OVH AI Endpoints API key.
 
 ---
