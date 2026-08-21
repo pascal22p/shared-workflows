@@ -43,7 +43,7 @@ response = client.chat.completions.create(
     temperature=0.2,
     response_format={"type": "json_object"},
     reasoning_effort=os.environ["REASONING_EFFORT"],
-    max_tokens=40000,
+    max_tokens=60000,
     timeout=1800.0,
 )
 
