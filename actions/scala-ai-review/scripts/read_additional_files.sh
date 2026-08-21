@@ -1,7 +1,5 @@
 set -euo pipefail
 
-rm -rf review-context
-
 mkdir -p review-context/additional
 
 fetch_file() {
