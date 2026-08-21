@@ -135,7 +135,7 @@ jobs:
           BASE_SHA: ${{ env.BASE_SHA }}
           HEAD_SHA: ${{ env.HEAD_SHA }}
         run: |
-          bash review-scripts/read_files.sh changed-files.txt
+          bash review-scripts/read_changed_files.sh
 
       - name: Capture additional files
         env:
@@ -144,7 +144,7 @@ jobs:
           BASE_SHA: ${{ env.BASE_SHA }}
           HEAD_SHA: ${{ env.HEAD_SHA }}
         run: |
-          bash review-scripts/read_files.sh additional-files.txt
+          bash review-scripts/read_additional_files.sh
 
       # ============================================================
       # Get complete PR diff
