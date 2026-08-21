@@ -97,7 +97,7 @@ jobs:
           
           mkdir -p review-scripts
           
-          for script in get_context_files.sh read_files.sh; do
+          for script in get_context_files.sh read_changed_files.sh read_additional_files.sh; do
             gh api \
               "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review/scripts/${script}?ref=main" \
               --jq '.content' \
