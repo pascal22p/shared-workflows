@@ -99,7 +99,7 @@ def build_context(
 
                 # Additional files are expected to be available
                 # in the after directory at the PR HEAD.
-                source = after_dir / file
+                source = after_dir / Path(filename).name
 
                 if not source.exists():
                     # Fall back to the file name directly if the
