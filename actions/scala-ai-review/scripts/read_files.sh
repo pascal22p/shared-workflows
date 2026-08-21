@@ -1,5 +1,7 @@
 set -euo pipefail
 
+CHANGED_FILES="${1:?Usage: $0 <changed-files.txt>}"
+
 rm -rf review-context
 
 mkdir -p review-context/before
@@ -61,4 +63,4 @@ while IFS= read -r file; do
     "review-context/after/${safe_name}" \
     "[FILE DELETED BY PR]"
 
-done < changed-files.txt
+done < "$CHANGED_FILES"
