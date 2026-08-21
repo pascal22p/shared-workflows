@@ -11,6 +11,7 @@ def build_context(
         additional_files_path: Path,
         before_dir: Path,
         after_dir: Path,
+        additional_dir: Path,
         diff_path: Path,
 ):
     with output_path.open("w", encoding="utf-8") as out:
@@ -93,30 +94,12 @@ def build_context(
             "# 5. Source of additional context files\n\n"
         )
 
-        if additional_files:
-            for filename in sorted(additional_files):
-                file = Path(filename)
-
-                # Additional files are expected to be available
-                # in the after directory at the PR HEAD.
-                source = after_dir / Path(filename).name
-
-                if not source.exists():
-                    # Fall back to the file name directly if the
-                    # directory structure isn't preserved.
-                    source = after_dir / file.name
-
-                if not source.exists():
-                    out.write(
-                        f"## {filename}\n\n"
-                        f"File not found in additional context source.\n\n"
-                    )
-                    continue
-
-                out.write(f"## {filename}\n\n")
-                out.write(f"```{fence_lang(filename)}\n")
+        if additional_dir.exists():
+            for file in sorted(additional_dir.iterdir()):
+                out.write(f"## {file.name}\n\n")
+                out.write(f"```{fence_lang(file.name)}\n")
                 out.write(
-                    source.read_text(
+                    file.read_text(
                         encoding="utf-8",
                         errors="ignore",
                     )
@@ -148,6 +131,7 @@ def main():
 
     before = Path("review-context/before")
     after = Path("review-context/after")
+    additional = Path("review-context/additional")
 
     pr_diff = Path("review-context/pr.diff")
 
@@ -157,6 +141,7 @@ def main():
         additional_files,
         before,
         after,
+        additional,
         pr_diff,
     )
 

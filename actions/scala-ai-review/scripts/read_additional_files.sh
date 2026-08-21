@@ -1,11 +1,8 @@
 set -euo pipefail
 
-CHANGED_FILES="${1:?Usage: $0 <changed-files.txt>}"
-
 rm -rf review-context
 
-mkdir -p review-context/before
-mkdir -p review-context/after
+mkdir -p review-context/additional
 
 fetch_file() {
   local file="$1"
@@ -54,13 +51,7 @@ while IFS= read -r file; do
   fetch_file \
     "$file" \
     "$BASE_SHA" \
-    "review-context/before/${safe_name}" \
-    "[FILE DID NOT EXIST AT BASE]"
+    "review-context/additional/${safe_name}" \
+    "[FILE DID NOT EXIST]"
 
-  fetch_file \
-    "$file" \
-    "$HEAD_SHA" \
-    "review-context/after/${safe_name}" \
-    "[FILE DELETED BY PR]"
-
-done < "$CHANGED_FILES"
+done < additional-files.txt
