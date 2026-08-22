@@ -37,6 +37,9 @@ jobs:
     name: Prepare Scala AI Review
     runs-on: ubuntu-24.04
 
+    outputs:
+      pr_number: ${{ steps.pr.outputs.number }}
+
     steps:
 
       # ============================================================
@@ -209,7 +212,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
-          pr_number: ${{ fromJSON(file('pr.json')).number }}
+          pr_number: ${{ needs.prepare.outputs.pr_number }}
 
 
   # ============================================================
@@ -234,4 +237,4 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
-          pr_number: ${{ fromJSON(file('pr.json')).number }}
+          pr_number: ${{ needs.prepare.outputs.pr_number }}
