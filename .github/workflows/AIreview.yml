@@ -105,7 +105,12 @@ jobs:
 
           mkdir -p review-scripts
 
-          for script in get_context_files.sh read_changed_files.sh read_additional_files.sh; do
+          for script in \
+            get_context_files.sh \
+            read_changed_files.sh \
+            read_additional_files.sh \
+            build_review_context.py
+          do
             gh api \
               "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review/scripts/${script}?ref=main" \
               --jq '.content' \
@@ -175,8 +180,13 @@ jobs:
           wc -c review-context/pr.diff
 
       # ============================================================
-      # Save review context for both reviewers
+      # Build and save review context for both reviewers
       # ============================================================
+      - name: Build AI review context
+        run: |
+          set -euo pipefail
+          python3 review-scripts/build_review_context.py
+      
 
       - name: Upload review context
         uses: actions/upload-artifact@v4
