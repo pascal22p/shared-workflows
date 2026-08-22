@@ -1,0 +1,112 @@
+name: Scala AI Review Prepare
+description: Prepare shared context for Scala AI code and test reviews
+
+inputs:
+  run_id:
+    description: "The Scala CI run ID that triggered this review"
+    required: true
+
+  pr_number:
+    description: "Pull request number"
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+
+    - name: Get PR metadata
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        set -euo pipefail
+
+        gh api \
+          "repos/${REPOSITORY}/pulls/${PR_NUMBER}" \
+          > pr.json
+
+        BASE_SHA=$(jq -r '.base.sha' pr.json)
+        HEAD_SHA=$(jq -r '.head.sha' pr.json)
+
+        echo "BASE_SHA=${BASE_SHA}" >> "$GITHUB_ENV"
+        echo "HEAD_SHA=${HEAD_SHA}" >> "$GITHUB_ENV"
+
+    - name: Download preparation scripts
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+
+        mkdir -p review-scripts
+
+        for script in \
+          get_context_files.sh \
+          read_changed_files.sh \
+          read_additional_files.sh \
+          build_review_context.py
+        do
+          gh api \
+            "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review-prepare/scripts/${script}?ref=main" \
+            --jq '.content' \
+            | tr -d '\n' \
+            | base64 -d \
+            > "review-scripts/${script}"
+
+          chmod +x "review-scripts/${script}" 2>/dev/null || true
+        done
+
+    - name: Get changed files
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        set -euo pipefail
+        bash review-scripts/get_context_files.sh
+
+    - name: Capture complete BEFORE and AFTER files
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        BASE_SHA: ${{ env.BASE_SHA }}
+        HEAD_SHA: ${{ env.HEAD_SHA }}
+      run: |
+        set -euo pipefail
+        bash review-scripts/read_changed_files.sh
+
+    - name: Capture additional files
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        BASE_SHA: ${{ env.BASE_SHA }}
+        HEAD_SHA: ${{ env.HEAD_SHA }}
+      run: |
+        set -euo pipefail
+        bash review-scripts/read_additional_files.sh
+
+    - name: Get complete PR diff
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        set -euo pipefail
+
+        gh api \
+          "repos/${REPOSITORY}/pulls/${PR_NUMBER}" \
+          -H "Accept: application/vnd.github.v3.diff" \
+          > review-context/pr.diff
+
+    - name: Build AI review context
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 review-scripts/build_review_context.py
