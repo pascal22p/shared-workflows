@@ -24,12 +24,6 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet protobuf openai
 
-    - name: Build AI review context
-      shell: bash
-      run: |
-        set -euo pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py"
-
     - name: Debug AI review context
       shell: bash
       run: |
@@ -38,8 +32,7 @@ runs:
         
         echo "model: ${{ inputs.model }}"
         echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
-        echo "run_id: ${{ inputs.run_id }}"
-        echo "pr_number: ${{ steps.pr.outputs.number }}"
+        echo "pr_number: ${{ inputs.pr_number }}"
         
         echo "::endgroup::"
         

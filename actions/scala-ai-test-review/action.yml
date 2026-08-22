@@ -1,0 +1,81 @@
+name: Scala AI Test Review
+description: Run the Scala AI test-focused review implementation
+
+inputs:
+  model:
+    description: "The OVH model name"
+    required: true
+  reasoning_effort:
+    description: "Reasoning depth"
+    required: true
+  ovh_api_key:
+    description: "OVH AI Endpoints API key"
+    required: true
+  pr_number:
+    description: "Pull request number"
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m pip install --quiet protobuf openai
+
+    - name: Debug AI review context
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "::group::Review parameters"
+        echo "model: ${{ inputs.model }}"
+        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
+        echo "pr_number: ${{ inputs.pr_number }}"
+        echo "::endgroup::"
+
+        echo "::group::Review context"
+
+        if [ -d "review-context" ]; then
+          echo "✓ review-context exists"
+          find review-context -type f -print
+        else
+          echo "✗ review-context DOES NOT EXIST"
+          exit 1
+        fi
+
+        if [ -f "review-context/full-context.md" ]; then
+          echo "✓ full-context.md exists"
+          echo "SIZE: $(wc -c < review-context/full-context.md) bytes"
+          echo "LINES: $(wc -l < review-context/full-context.md)"
+        else
+          echo "✗ full-context.md DOES NOT EXIST"
+          exit 1
+        fi
+
+        echo "::endgroup::"
+
+    - name: Review tests with OVH
+      shell: bash
+      env:
+        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_test_review.py"
+
+    - name: Publish GitHub test review
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_test_review.py"
