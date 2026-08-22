@@ -28,8 +28,13 @@ permissions:
   actions: read
 
 jobs:
-  review:
-    name: Scala AI Review
+
+  # ============================================================
+  # Prepare review context
+  # ============================================================
+
+  prepare:
+    name: Prepare Scala AI Review
     runs-on: ubuntu-24.04
 
     steps:
@@ -94,9 +99,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          
+
           mkdir -p review-scripts
-          
+
           for script in get_context_files.sh read_changed_files.sh read_additional_files.sh; do
             gh api \
               "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review/scripts/${script}?ref=main" \
@@ -104,7 +109,7 @@ jobs:
               | tr -d '\n' \
               | base64 -d \
               > "review-scripts/${script}"
-          
+
             chmod +x "review-scripts/${script}"
           done
 
@@ -167,8 +172,36 @@ jobs:
           wc -c review-context/pr.diff
 
       # ============================================================
-      # Run the implementation stored in shared-workflows
+      # Save review context for both reviewers
       # ============================================================
+
+      - name: Upload review context
+        uses: actions/upload-artifact@v4
+        with:
+          name: scala-ai-review-context
+          path: |
+            changed-files.txt
+            pr.json
+            pr-files.json
+            review-context/
+          retention-days: 7
+
+
+  # ============================================================
+  # Implementation review
+  # ============================================================
+
+  code-review:
+    name: Scala AI Code Review
+    needs: prepare
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Download review context
+        uses: actions/download-artifact@v4
+        with:
+          name: scala-ai-review-context
 
       - name: Scala AI review
         uses: pascal22p/shared-workflows/actions/scala-ai-review@main
@@ -176,20 +209,29 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
-          pr_number: ${{ steps.pr.outputs.number }}
+          pr_number: ${{ fromJSON(file('pr.json')).number }}
 
-      # ============================================================
-      # Save review context
-      # ============================================================
 
-      - name: Upload review context
-        if: always()
-        uses: actions/upload-artifact@v4
+  # ============================================================
+  # Test-only review
+  # ============================================================
+
+  test-review:
+    name: Scala AI Test Review
+    needs: prepare
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Download review context
+        uses: actions/download-artifact@v4
         with:
-          name: scala-ai-review
-          path: |
-            changed-files.txt
-            pr.json
-            pr-files.json
-            review-context/
-          retention-days: 7
+          name: scala-ai-review-context
+
+      - name: Scala AI test review
+        uses: pascal22p/shared-workflows/actions/scala-ai-test-review@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
+          pr_number: ${{ fromJSON(file('pr.json')).number }}
