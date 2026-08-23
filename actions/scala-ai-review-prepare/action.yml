@@ -34,6 +34,20 @@ runs:
         echo "BASE_SHA=${BASE_SHA}" >> "$GITHUB_ENV"
         echo "HEAD_SHA=${HEAD_SHA}" >> "$GITHUB_ENV"
 
+    - name: Get PR files
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        set -euo pipefail
+
+        gh api \
+          --paginate \
+          "repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
+          > pr-files.json
+        
     - name: Download preparation scripts
       shell: bash
       env:
