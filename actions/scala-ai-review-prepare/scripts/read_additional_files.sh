@@ -48,10 +48,6 @@ fetch_file() {
   rm -f "$response" "$decoded"
 }
 
-HEAD_SHA=$(gh api \
-  "repos/${REPOSITORY}/pulls/${PR_NUMBER}" \
-  --jq '.head.sha')
-
 changed_files=$(mktemp)
 additional_files=$(mktemp)
 
