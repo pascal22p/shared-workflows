@@ -9,7 +9,7 @@ from openai import OpenAI
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 context = Path(
-    "review-context/full-context.md"
+    "review-context/frontend-review.md"
 ).read_text(
     encoding="utf-8",
     errors="ignore"

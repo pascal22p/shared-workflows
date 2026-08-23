@@ -26,6 +26,14 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet protobuf openai
 
+    - name: Build AI test review context
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        python3 "$GITHUB_ACTION_PATH/scripts/build_test_review_context.py" \
+          review-context/test-review.md
+
     - name: Debug AI review context
       shell: bash
       run: |
@@ -47,12 +55,12 @@ runs:
           exit 1
         fi
 
-        if [ -f "review-context/full-context.md" ]; then
-          echo "✓ full-context.md exists"
-          echo "SIZE: $(wc -c < review-context/full-context.md) bytes"
-          echo "LINES: $(wc -l < review-context/full-context.md)"
+        if [ -f "review-context/test-review.md" ]; then
+          echo "✓ test-review.md exists"
+          echo "SIZE: $(wc -c < review-context/test-review.md) bytes"
+          echo "LINES: $(wc -l < review-context/test-review.md)"
         else
-          echo "✗ full-context.md DOES NOT EXIST"
+          echo "✗ test-review.md DOES NOT EXIST"
           exit 1
         fi
 

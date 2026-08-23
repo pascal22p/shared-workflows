@@ -1,14 +1,37 @@
 from pathlib import Path
+import sys
 
 
 def fence_lang(name: str) -> str:
     return Path(name).suffix.lstrip(".")
 
 
+def write_directory(
+        out,
+        directory: Path,
+) -> None:
+    if not directory.exists():
+        return
+
+    for file in sorted(directory.rglob("*")):
+        if not file.is_file():
+            continue
+
+        relative_path = file.relative_to(directory)
+
+        out.write(f"## {relative_path}\n\n")
+        out.write(f"```{fence_lang(file.name)}\n")
+        out.write(
+            file.read_text(
+                encoding="utf-8",
+                errors="ignore",
+            )
+        )
+        out.write("\n```\n\n")
+
+
 def build_context(
         output_path: Path,
-        changed_files_path: Path,
-        additional_files_path: Path,
         before_dir: Path,
         after_dir: Path,
         additional_dir: Path,
@@ -20,34 +43,22 @@ def build_context(
         # ----------------------------------------------------
         out.write("# 1. Changed files\n\n")
 
-        if changed_files_path.exists():
-            out.write(
-                changed_files_path.read_text(encoding="utf-8")
-            )
-
-        out.write("\n\n")
+        write_directory(
+            out,
+            after_dir,
+        )
 
         # ----------------------------------------------------
         # Additional context files
         # ----------------------------------------------------
-        out.write("# 2. Additional context files (unchanged by the PR)\n\n")
+        out.write(
+            "# 2. Additional context files (unchanged by the PR)\n\n"
+        )
 
-        additional_files = []
-
-        if additional_files_path.exists():
-            additional_files = [
-                line.strip()
-                for line in additional_files_path.read_text(
-                    encoding="utf-8"
-                ).splitlines()
-                if line.strip()
-            ]
-
-            out.write(
-                additional_files_path.read_text(encoding="utf-8")
-            )
-
-        out.write("\n\n")
+        write_directory(
+            out,
+            additional_dir,
+        )
 
         # ----------------------------------------------------
         # BEFORE
@@ -56,17 +67,10 @@ def build_context(
             "# 3. Source of the changed files before the PR\n\n"
         )
 
-        if before_dir.exists():
-            for file in sorted(before_dir.iterdir()):
-                out.write(f"## {file.name}\n\n")
-                out.write(f"```{fence_lang(file.name)}\n")
-                out.write(
-                    file.read_text(
-                        encoding="utf-8",
-                        errors="ignore",
-                    )
-                )
-                out.write("\n```\n\n")
+        write_directory(
+            out,
+            before_dir,
+        )
 
         # ----------------------------------------------------
         # AFTER
@@ -75,17 +79,10 @@ def build_context(
             "# 4. Source of the changed files after the PR\n\n"
         )
 
-        if after_dir.exists():
-            for file in sorted(after_dir.iterdir()):
-                out.write(f"## {file.name}\n\n")
-                out.write(f"```{fence_lang(file.name)}\n")
-                out.write(
-                    file.read_text(
-                        encoding="utf-8",
-                        errors="ignore",
-                    )
-                )
-                out.write("\n```\n\n")
+        write_directory(
+            out,
+            after_dir,
+        )
 
         # ----------------------------------------------------
         # ADDITIONAL FILE CONTENT
@@ -94,17 +91,10 @@ def build_context(
             "# 5. Source of additional context files\n\n"
         )
 
-        if additional_dir.exists():
-            for file in sorted(additional_dir.iterdir()):
-                out.write(f"## {file.name}\n\n")
-                out.write(f"```{fence_lang(file.name)}\n")
-                out.write(
-                    file.read_text(
-                        encoding="utf-8",
-                        errors="ignore",
-                    )
-                )
-                out.write("\n```\n\n")
+        write_directory(
+            out,
+            additional_dir,
+        )
 
         # ----------------------------------------------------
         # DIFF
@@ -124,21 +114,20 @@ def build_context(
 
 
 def main():
-    output = Path("review-context/full-context.md")
+    if len(sys.argv) != 2:
+        raise SystemExit(
+            "Usage: build_test_review_context.py <output-path>"
+        )
 
-    changed_files = Path("changed-files.txt")
-    additional_files = Path("additional-files.txt")
+    output = Path(sys.argv[1])
 
     before = Path("review-context/before")
     after = Path("review-context/after")
     additional = Path("review-context/additional")
-
     pr_diff = Path("review-context/pr.diff")
 
     build_context(
         output,
-        changed_files,
-        additional_files,
         before,
         after,
         additional,

@@ -24,106 +24,113 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet protobuf openai
 
+    - name: Build AI review context
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py" \
+          review-context/code-review.md
+
     - name: Debug AI review context
       shell: bash
       run: |
         set -euo pipefail
+
         echo "::group::Review parameters"
-        
+
         echo "model: ${{ inputs.model }}"
         echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
         echo "pr_number: ${{ inputs.pr_number }}"
-        
+
         echo "::endgroup::"
-        
+
         echo "::group::Review context directory"
-        
+
         if [ -d "review-context" ]; then
           echo "✓ review-context exists"
           find review-context -type f -print
         else
           echo "✗ review-context DOES NOT EXIST"
         fi
-        
+
         echo "::endgroup::"
-        
+
         echo "::group::BEFORE files"
-        
+
         if [ -d "review-context/before" ]; then
-          for file in review-context/before/*; do
-            [ -f "$file" ] || continue
-        
-            echo
-            echo "========================================"
-            echo "FILE: $file"
-            echo "========================================"
-        
-            if [ -s "$file" ]; then
-              echo "STATUS: ✓ present"
-              echo "SIZE: $(wc -c < "$file") bytes"
-              echo "LINES: $(wc -l < "$file")"
-            else
-              echo "STATUS: ⚠ present but EMPTY"
-            fi
-        
-            echo "--- content ---"
-            sed -n '1,50p' "$file"
-            echo "--- end content ---"
-          done
+          find review-context/before -type f -print0 |
+            while IFS= read -r -d '' file; do
+              echo
+              echo "========================================"
+              echo "FILE: $file"
+              echo "========================================"
+
+              if [ -s "$file" ]; then
+                echo "STATUS: ✓ present"
+                echo "SIZE: $(wc -c < "$file") bytes"
+                echo "LINES: $(wc -l < "$file")"
+              else
+                echo "STATUS: ⚠ present but EMPTY"
+              fi
+
+              echo "--- content ---"
+              sed -n '1,50p' "$file"
+              echo "--- end content ---"
+            done
         else
           echo "✗ review-context/before DOES NOT EXIST"
         fi
-        
+
         echo "::endgroup::"
-        
+
         echo "::group::AFTER files"
-        
+
         if [ -d "review-context/after" ]; then
-          for file in review-context/after/*; do
-            [ -f "$file" ] || continue
-        
-            echo
-            echo "========================================"
-            echo "FILE: $file"
-            echo "========================================"
-        
-            if [ -s "$file" ]; then
-              echo "STATUS: ✓ present"
-              echo "SIZE: $(wc -c < "$file") bytes"
-              echo "LINES: $(wc -l < "$file")"
-            else
-              echo "STATUS: ⚠ present but EMPTY"
-            fi
-        
-            echo "--- content ---"
-            sed -n '1,50p' "$file"
-            echo "--- end content ---"
-          done
+          find review-context/after -type f -print0 |
+            while IFS= read -r -d '' file; do
+              echo
+              echo "========================================"
+              echo "FILE: $file"
+              echo "========================================"
+
+              if [ -s "$file" ]; then
+                echo "STATUS: ✓ present"
+                echo "SIZE: $(wc -c < "$file") bytes"
+                echo "LINES: $(wc -l < "$file")"
+              else
+                echo "STATUS: ⚠ present but EMPTY"
+              fi
+
+              echo "--- content ---"
+              sed -n '1,50p' "$file"
+              echo "--- end content ---"
+            done
         else
           echo "✗ review-context/after DOES NOT EXIST"
         fi
-        
+
         echo "::endgroup::"
-        
-        echo "::group::Full context sent to LLM"
-        
-        if [ -f "review-context/full-context.md" ]; then
-          echo "✓ full-context.md exists"
-          echo "SIZE: $(wc -c < review-context/full-context.md) bytes"
-          echo "LINES: $(wc -l < review-context/full-context.md)"
-        
-          if [ -s "review-context/full-context.md" ]; then
+
+        echo "::group::Context sent to LLM"
+
+        if [ -f "review-context/code-review.md" ]; then
+          echo "✓ code-review.md exists"
+          echo "SIZE: $(wc -c < review-context/code-review.md) bytes"
+          echo "LINES: $(wc -l < review-context/code-review.md)"
+
+          if [ -s "review-context/code-review.md" ]; then
             echo "STATUS: ✓ contains content"
           else
             echo "STATUS: ⚠ EMPTY"
           fi
-        
+
           echo
-          cat review-context/full-context.md
+          cat review-context/code-review.md
         else
-          echo "✗ full-context.md DOES NOT EXIST"
+          echo "✗ code-review.md DOES NOT EXIST"
         fi
-        
+
         echo "::endgroup::"
 
     - name: Review with OVH

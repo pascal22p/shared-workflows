@@ -1,7 +1,5 @@
 set -euo pipefail
 
-rm -rf review-context
-
 mkdir -p review-context/before
 mkdir -p review-context/after
 
@@ -13,6 +11,8 @@ fetch_file() {
 
   local response="/tmp/file.json"
   local decoded="/tmp/file.content"
+
+  mkdir -p "$(dirname "$output")"
 
   if ! gh api \
     "repos/${REPOSITORY}/contents/${file}?ref=${sha}" \
@@ -41,24 +41,28 @@ fetch_file() {
   cp "$decoded" "$output"
 }
 
+jq -r '.[].filename' pr-files.json \
+  | sort -u \
+  > /tmp/changed-files.txt
+
 while IFS= read -r file; do
 
   [ -z "$file" ] && continue
-
-  safe_name=$(echo "$file" | sed 's#[/ ]#__#g')
 
   echo "Reading ${file}"
 
   fetch_file \
     "$file" \
     "$BASE_SHA" \
-    "review-context/before/${safe_name}" \
+    "review-context/before/${file}" \
     "[FILE DID NOT EXIST AT BASE]"
 
   fetch_file \
     "$file" \
     "$HEAD_SHA" \
-    "review-context/after/${safe_name}" \
+    "review-context/after/${file}" \
     "[FILE DELETED BY PR]"
 
-done < changed-files.txt
+done < /tmp/changed-files.txt
+
+rm -f /tmp/changed-files.txt

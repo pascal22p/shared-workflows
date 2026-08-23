@@ -29,6 +29,14 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet protobuf openai
 
+    - name: Build AI frontend review context
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        python3 "$GITHUB_ACTION_PATH/scripts/build_frontend_review_context.py" \
+          review-context/frontend-review.md
+
     - name: Review frontend elements with OVH
       shell: bash
       env:
