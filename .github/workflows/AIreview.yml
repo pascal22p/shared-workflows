@@ -128,3 +128,28 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
+
+
+  # ============================================================
+  # Frontend elements review
+  # ============================================================
+
+  frontend-review:
+    name: Scala AI frontend Review
+    needs: prepare
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Download review context
+        uses: actions/download-artifact@v4
+        with:
+          name: scala-ai-review-context
+
+      - name: Scala AI frontend review
+        uses: pascal22p/shared-workflows/actions/scala-ai-frontend-review@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
+          pr_number: ${{ needs.prepare.outputs.pr_number }}

@@ -1,0 +1,52 @@
+name: Scala AI frontend Review
+description: Run the Scala AI frontend template review
+
+inputs:
+  model:
+    description: "The OVH model name"
+    required: true
+
+  reasoning_effort:
+    description: "Reasoning depth"
+    required: true
+
+  ovh_api_key:
+    description: "OVH AI Endpoints API key"
+    required: true
+
+  pr_number:
+    description: "Pull request number"
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m pip install --quiet protobuf openai
+
+    - name: Review frontend elements with OVH
+      shell: bash
+      env:
+        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_frontend_review.py"
+
+    - name: Publish GitHub Frontend review
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_frontend_review.py"
