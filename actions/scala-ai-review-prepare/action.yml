@@ -81,7 +81,7 @@ runs:
         mkdir -p review-context
 
         gh api \
-          "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review-prepare/prompts/core_review_prompt.md?ref=main" \
+          "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review-prepare/scripts/core_review_prompt.md?ref=main" \
           --jq '.content' \
           | tr -d '\n' \
           | base64 -d \
