@@ -2,8 +2,45 @@ from pathlib import Path
 import sys
 
 
+FRONTEND_EXTENSIONS = {
+    ".html",
+    ".htm",
+    ".css",
+    ".scss",
+    ".sass",
+    ".less",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+}
+
+
 def fence_lang(name: str) -> str:
     return Path(name).suffix.lstrip(".")
+
+
+def is_test_file(path: Path) -> bool:
+    parts = {part.lower() for part in path.parts}
+
+    return bool(parts & {"test", "it"})
+
+
+def is_frontend_file(path: Path) -> bool:
+    name = path.name.lower()
+
+    return (
+            name.endswith(".scala.xml")
+            or name.endswith(".scala.txt")
+            or any(
+        name.endswith(extension)
+        for extension in FRONTEND_EXTENSIONS
+    )
+    )
+
+
+def is_code_review_file(path: Path) -> bool:
+    return not is_test_file(path) and not is_frontend_file(path)
 
 
 def write_directory(
@@ -18,6 +55,9 @@ def write_directory(
             continue
 
         relative_path = file.relative_to(directory)
+
+        if not is_code_review_file(relative_path):
+            continue
 
         out.write(f"## {relative_path}\n\n")
         out.write(f"```{fence_lang(file.name)}\n")
@@ -52,7 +92,8 @@ def build_context(
         # Additional context files
         # ----------------------------------------------------
         out.write(
-            "# 2. Additional context files (unchanged by the PR)\n\n"
+            "# 2. Additional context files "
+            "(unchanged by the PR)\n\n"
         )
 
         write_directory(

@@ -2,13 +2,41 @@ from pathlib import Path
 import sys
 
 
+FRONTEND_EXTENSIONS = {
+    ".html",
+    ".htm",
+    ".css",
+    ".scss",
+    ".sass",
+    ".less",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+}
+
+
 def fence_lang(name: str) -> str:
     return Path(name).suffix.lstrip(".")
+
+
+def is_frontend_file(path: Path) -> bool:
+    name = path.name.lower()
+
+    return (
+            name.endswith(".scala.xml")
+            or name.endswith(".scala.txt")
+            or any(
+        name.endswith(extension)
+        for extension in FRONTEND_EXTENSIONS
+    )
+    )
 
 
 def write_directory(
         out,
         directory: Path,
+        filter_frontend: bool = True,
 ) -> None:
     if not directory.exists():
         return
@@ -18,6 +46,9 @@ def write_directory(
             continue
 
         relative_path = file.relative_to(directory)
+
+        if filter_frontend and not is_frontend_file(relative_path):
+            continue
 
         out.write(f"## {relative_path}\n\n")
         out.write(f"```{fence_lang(file.name)}\n")
@@ -46,18 +77,21 @@ def build_context(
         write_directory(
             out,
             after_dir,
+            filter_frontend=True,
         )
 
         # ----------------------------------------------------
         # Additional context files
         # ----------------------------------------------------
         out.write(
-            "# 2. Additional context files (unchanged by the PR)\n\n"
+            "# 2. Additional context files "
+            "(unchanged by the PR)\n\n"
         )
 
         write_directory(
             out,
             additional_dir,
+            filter_frontend=False,
         )
 
         # ----------------------------------------------------
@@ -70,6 +104,7 @@ def build_context(
         write_directory(
             out,
             before_dir,
+            filter_frontend=True,
         )
 
         # ----------------------------------------------------
@@ -82,6 +117,7 @@ def build_context(
         write_directory(
             out,
             after_dir,
+            filter_frontend=True,
         )
 
         # ----------------------------------------------------
@@ -94,6 +130,7 @@ def build_context(
         write_directory(
             out,
             additional_dir,
+            filter_frontend=False,
         )
 
         # ----------------------------------------------------
@@ -116,7 +153,7 @@ def build_context(
 def main():
     if len(sys.argv) != 2:
         raise SystemExit(
-            "Usage: build_test_review_context.py <output-path>"
+            "Usage: build_review_context.py <output-path>"
         )
 
     output = Path(sys.argv[1])
