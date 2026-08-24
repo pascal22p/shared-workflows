@@ -88,7 +88,8 @@ Do not report:
 - unavailable-code assumptions;
 - duplicate findings;
 - issues outside the specialised review scope;
-- requests for change solely because another implementation is possible.
+- requests for change solely because another implementation is possible;
+- compilation errors.
 
 When assessing maintainability, report only concrete problems such as unnecessary abstraction, duplicated business logic, avoidable coupling or indirection, materially harder-to-understand control flow, misleading structure, or avoidable failure modes. Do not turn personal style preferences into findings.
 

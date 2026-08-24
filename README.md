@@ -4,16 +4,25 @@ This repository contains shared GitHub Actions and workflows used for code quali
 
 ## Actions
 
-### Scala AI Review (`actions/scala-ai-review`)
+### Scala AI Review Components
 
-A composite action that performs automated code reviews on Scala projects using AI via OVH AI Endpoints. It leverages SemanticDB information to provide deep, semantically aware context to the Large Language Model.
+The AI review process is split into several specialized actions to provide focused feedback on different parts of the codebase. All review actions leverage SemanticDB information (where applicable) and OVH AI Endpoints.
 
-#### Features
+#### 1. Core Review (`actions/scala-ai-review`)
+Performs the primary automated code review on Scala logic and implementation.
+
+#### 2. Test Review (`actions/scala-ai-test-review`)
+Specialized review for Scala test files, focusing on test coverage, style, and correctness.
+
+#### 3. Frontend Review (`actions/scala-ai-frontend-review`)
+Focused on frontend-related files (JS, CSS, etc.) within the Scala project.
+
+#### Common Features
 - **Before/After Analysis**: Captures both original and modified versions of files for comprehensive comparison.
 - **Multi-Model Support**: Configurable to use various models available through OVH AI Endpoints.
 - **Automated Feedback**: Automatically publishes AI-generated comments as a review on the Pull Request.
 
-#### Inputs
+#### Inputs (Review Actions)
 | Name | Description | Required |
 |------|-------------|----------|
 | `model` | The OVH AI model name to use. | Yes |
@@ -21,8 +30,11 @@ A composite action that performs automated code reviews on Scala projects using 
 | `ovh_api_key` | API key for OVH AI Endpoints. | Yes |
 | `pr_number` | The number of the Pull Request to review. | Yes |
 
+#### Preparation Action (`actions/scala-ai-review-prepare`)
+A prerequisite action that gathers the necessary context (diffs, files, SemanticDB) used by the review components.
+
 #### Requirements
-- Python 3.x with `openai` packages (installed automatically by the action).
+- Python 3.x with `openai` packages (installed automatically by the actions).
 - An active OVH AI Endpoints API key.
 
 ---
@@ -31,14 +43,13 @@ A composite action that performs automated code reviews on Scala projects using 
 
 ### AI Review Workflow (`.github/workflows/AIreview.yml`)
 
-A reusable workflow (`workflow_call`) that orchestrates the Scala AI Review process. It streamlines the setup by handling PR metadata extraction and artifact retrieval.
+A reusable workflow (`workflow_call`) that orchestrates the Scala AI Review components. It runs the preparation step followed by three parallel review jobs for core code, tests, and frontend.
 
-#### Workflow Steps:
-1. **Identify PR**: Determines the Pull Request associated with the triggering CI run.
-2. **Retrieve Artifacts**: Downloads the `semanticdb` artifact produced by the project's build.
-3. **Capture Context**: Fetches the full content of changed files (Scala, JS, CSS, etc.) at both the base and head SHAs.
-4. **Execute Review**: Calls the `scala-ai-review` action with the gathered context.
-5. **Artifact Storage**: Uploads the complete review context for audit and debugging purposes.
+#### Workflow Jobs:
+1. **Prepare**: Gathers context and uploads it as an artifact.
+2. **Code Review**: Executes the Core AI review.
+3. **Test Review**: Executes the Test AI review.
+4. **Frontend Review**: Executes the Frontend AI review.
 
 #### Usage Example:
 ```yaml
@@ -52,10 +63,6 @@ jobs:
     secrets:
       OVH_AI_ENDPOINTS_API_KEY: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
 ```
-
-### Qodana Code Quality (`.github/workflows/qodana_code_quality.yml`)
-
-Integrates [JetBrains Qodana](https://www.jetbrains.com/qodana/) for static analysis.
 
 ---
 
