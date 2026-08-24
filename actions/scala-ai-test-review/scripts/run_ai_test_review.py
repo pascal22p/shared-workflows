@@ -5,7 +5,6 @@ from pathlib import Path
 
 from openai import OpenAI
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 context = Path(
@@ -15,10 +14,23 @@ context = Path(
     errors="ignore"
 )
 
-system_prompt = (
+CORE_PROMPT = Path(
+    "review-context/core_review_prompt.md"
+).read_text(
+    encoding="utf-8",
+    errors="ignore",
+)
+
+REVIEW_PROMPT = (
         SCRIPT_DIR / "test_system_prompt.md"
 ).read_text(
     encoding="utf-8",
+    errors="ignore",
+)
+
+system_prompt = REVIEW_PROMPT.replace(
+    "{{CORE_PROMPT}}",
+    CORE_PROMPT,
 )
 
 client = OpenAI(
