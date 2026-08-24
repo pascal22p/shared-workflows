@@ -70,33 +70,6 @@ For changed forms check:
 - input types and autocomplete attributes are appropriate;
 - server-side validation remains authoritative.
 
-## Accessibility
-
-Treat accessibility as a correctness requirement, not an aesthetic preference.
-
-Check for concrete regressions involving:
-
-- keyboard-only operation;
-- visible focus;
-- focus order and focus management;
-- accessible names and descriptions;
-- semantic HTML;
-- screen-reader interpretation;
-- correct use of ARIA;
-- `aria-expanded`, `aria-controls`, `aria-describedby` and related state where applicable;
-- colour contrast where demonstrable from supplied styles;
-- information conveyed by colour alone;
-- zoom and reflow;
-- small viewport behaviour;
-- responsive layouts;
-- accessible validation and error states;
-- dynamic content announcements where required;
-- meaningful link text;
-- appropriate image alternative text;
-- decorative images being hidden from assistive technology.
-
-Prefer native HTML semantics over ARIA. Do not add ARIA simply because it is possible. Incorrect or contradictory ARIA is a defect when it changes the accessible behaviour.
-
 ## Progressive enhancement
 
 The baseline page should remain usable with semantic HTML and without depending unnecessarily on JavaScript.
@@ -189,14 +162,11 @@ Do not report stylistic preferences.
 
 Trace changed behaviour across supplied frontend files and look for mismatches between:
 
-- view model ↔ Twirl;
 - Twirl ↔ JavaScript;
 - Twirl ↔ CSS/Sass;
 - labels ↔ values;
 - component markup ↔ stylesheet selectors;
 - component markup ↔ JavaScript hooks;
-- validation state ↔ rendered errors;
-- ARIA state ↔ actual UI state.
 
 Many frontend defects only become visible across these boundaries.
 
