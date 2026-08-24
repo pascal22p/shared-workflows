@@ -126,21 +126,9 @@ def build_context(
         )
 
         # ----------------------------------------------------
-        # ADDITIONAL FILE CONTENT
-        # ----------------------------------------------------
-        out.write(
-            "# 5. Source of additional context files\n\n"
-        )
-
-        write_directory(
-            out,
-            additional_dir,
-        )
-
-        # ----------------------------------------------------
         # DIFF
         # ----------------------------------------------------
-        out.write("# 6. Complete PR diff\n\n")
+        out.write("# 5. Complete PR diff\n\n")
         out.write("```diff\n")
 
         if diff_path.exists():
