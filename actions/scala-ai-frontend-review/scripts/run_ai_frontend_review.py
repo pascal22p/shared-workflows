@@ -27,6 +27,13 @@ system_prompt = REVIEW_PROMPT.replace(
     CORE_PROMPT,
 )
 
+context = Path(
+    "review-context/code-review.md"
+).read_text(
+    encoding="utf-8",
+    errors="ignore",
+)
+
 client = OpenAI(
     base_url="https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
     api_key=os.environ["OVH_AI_ENDPOINTS_API_KEY"],
