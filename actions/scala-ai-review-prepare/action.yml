@@ -71,6 +71,22 @@ runs:
           chmod +x "review-scripts/${script}" 2>/dev/null || true
         done
 
+    - name: Capture core review prompt
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+
+        mkdir -p review-context
+
+        gh api \
+          "repos/pascal22p/shared-workflows/contents/actions/scala-ai-review-prepare/prompts/core_review_prompt.md?ref=main" \
+          --jq '.content' \
+          | tr -d '\n' \
+          | base64 -d \
+          > review-context/core_review_prompt.md
+
     - name: Capture complete BEFORE and AFTER files
       shell: bash
       env:
