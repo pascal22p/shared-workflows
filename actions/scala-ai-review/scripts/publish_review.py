@@ -66,7 +66,7 @@ def parse_diff(diff: str) -> dict[str, set[int]]:
     return valid_lines
 
 
-def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_model: str) -> list[dict]:
+def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_model: str, reasoning_effort: str) -> list[dict]:
     """
     Map AI findings to valid lines in the diff, snapping to nearest valid line if needed.
     """
@@ -116,8 +116,9 @@ def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_
             "body": (
                 f"**{severity} — {title}**\n\n"
                 f"{body}\n\n"
-                "_Scala 3 + "
+                "reviewed by "
                 f"OVH {review_model}"
+                f"with reasoning effort {reasoning_effort}"
             )
         })
     return comments
@@ -161,7 +162,7 @@ def main():
     # Build inline comments
     # --------------------------------------------------------
 
-    comments = map_findings(findings, valid_lines, review_model)
+    comments = map_findings(findings, valid_lines, review_model, reasoning_effort)
     comments = comments[:50]
 
     summary = review.get("summary", "AI code review completed.")

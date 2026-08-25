@@ -83,6 +83,7 @@ def map_findings(
         findings: list[dict],
         valid_lines: dict[str, set[int]],
         review_model: str,
+        reasoning_effort: str
 ) -> tuple[list[dict], list[dict]]:
     """
     Split findings into two groups.
@@ -197,8 +198,9 @@ def map_findings(
             "body": (
                 f"**{severity} — {title}**\n\n"
                 f"{body}\n\n"
-                "_Scala 3 + "
-                f"OVH {review_model}_"
+                "reviewed by "
+                f"OVH {review_model}"
+                f"with reasoning effort {reasoning_effort}"
             )
         })
 
@@ -313,7 +315,8 @@ def main():
     comments, outside_scope = map_findings(
         findings,
         valid_lines,
-        review_model
+        review_model,
+        reasoning_effort
     )
 
     # GitHub has a practical limit on review comments.
@@ -360,9 +363,10 @@ def main():
         "- build.sbt, project/*\n"
         "- Complete BEFORE source\n"
         "- Complete AFTER source\n"
-        "- Complete PR diff\n"
-        f"- Reasoning effort: `{reasoning_effort}`\n"
-        f"- OVH `{review_model}`\n"
+        "- Complete PR diff\n\n"
+        "reviewed by "
+        f"OVH {review_model}"
+        f"with reasoning effort {reasoning_effort}"
     )
 
     # --------------------------------------------------------
