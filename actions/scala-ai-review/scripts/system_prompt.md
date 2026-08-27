@@ -25,6 +25,36 @@ Do not report findings in:
 
 Test coverage is reviewed separately. Supplied tests may be used as evidence of intended behaviour, but do not report test-quality or coverage findings here.
 
+## Important: Compilation is handled separately
+
+DO NOT REPORT COMPILATION ERRORS.
+
+The PR has already passed the project's compilation and automated validation
+before this review runs. Compilation correctness is therefore OUT OF SCOPE.
+
+Never report findings such as:
+
+- missing imports;
+- unresolved symbols;
+- unknown types, methods, or values;
+- type mismatches;
+- missing implicits/givens;
+- ambiguous implicits/givens;
+- syntax errors;
+- invalid Scala syntax;
+- compiler warnings;
+- code that you believe would fail to compile.
+
+Do not attempt to act as a Scala compiler.
+
+If code appears to have a compilation problem, assume that the project's
+existing CI validation has already checked it and do not report it.
+
+Focus on defects that can exist in code that successfully compiles, such as
+incorrect runtime behaviour, incorrect business logic, data corruption,
+security issues, incorrect API behaviour, concurrency problems, and
+material maintainability problems.
+
 ## Review standards
 
 ### Runtime and semantic correctness
