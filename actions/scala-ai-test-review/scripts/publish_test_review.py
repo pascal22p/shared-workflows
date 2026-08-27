@@ -199,7 +199,7 @@ def map_findings(
                 f"**{severity} — {title}**\n\n"
                 f"{body}\n\n"
                 "reviewed by "
-                f"OVH {review_model}"
+                f"OVH {review_model} "
                 f"with reasoning effort {reasoning_effort}"
             )
         })
@@ -365,7 +365,7 @@ def main():
         "- Complete AFTER source\n"
         "- Complete PR diff\n\n"
         "reviewed by "
-        f"OVH {review_model}"
+        f"OVH {review_model} "
         f"with reasoning effort {reasoning_effort}"
     )
 

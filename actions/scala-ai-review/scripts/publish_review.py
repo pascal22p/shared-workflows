@@ -117,7 +117,7 @@ def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_
                 f"**{severity} — {title}**\n\n"
                 f"{body}\n\n"
                 "reviewed by "
-                f"OVH {review_model}"
+                f"OVH {review_model} "
                 f"with reasoning effort {reasoning_effort}"
             )
         })
@@ -176,9 +176,10 @@ def main():
         "- build.sbt, project/*\n"
         "- Complete BEFORE source\n"
         "- Complete AFTER source\n"
-        "- Complete PR diff\n"
-        f"- Reasoning effort: `{reasoning_effort}`\n"
-        f"- OVH `{review_model}`\n"
+        "- Complete PR diff\n\n"
+        "reviewed by "
+        f"OVH {review_model} "
+        f"with reasoning effort {reasoning_effort}"
     )
 
     # --------------------------------------------------------
