@@ -20,10 +20,10 @@ inputs:
     required: true
   output_file:
     description: "Output path for the cleaned review JSON"
-    required: false
+    required: true
   log_file:
     description: "Output path for the cleanup decision log"
-    required: false
+    required: true
 
 runs:
   using: composite
@@ -34,58 +34,41 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet openai
 
-    - name: Debug cleanup inputs
+    - name: Debug cleanup output
       shell: bash
       run: |
         set -euo pipefail
-
-        echo "::group::Cleanup parameters"
-
-        echo "model: ${{ inputs.model }}"
-        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
-        echo "temperature: ${{ inputs.temperature }}"
-        echo "review_file: ${{ inputs.review_file }}"
-        echo "output_file: ${{ inputs.output_file }}"
-        echo "log_file: ${{ inputs.log_file }}"
-
-        echo "::endgroup::"
-
-        echo "::group::Candidate review"
-
-        review_file="review-context/${{ inputs.review_file }}"
-
-        echo "Looking for: $review_file"
-
-        if [ -f "$review_file" ]; then
-          echo "✓ candidate review exists"
-          echo "SIZE: $(wc -c < "$review_file") bytes"
-          echo "LINES: $(wc -l < "$review_file")"
+        
+        echo "::group::Cleaned review"
+        
+        output_file="review-context/${{ inputs.output_file }}"
+        
+        if [ -f "$output_file" ]; then
+          echo "✓ cleaned review exists"
+          echo "SIZE: $(wc -c < "$output_file") bytes"
           echo
-          cat "$review_file"
+          cat "$output_file"
         else
-          echo "✗ candidate review DOES NOT EXIST"
-          echo
-          echo "Current directory:"
-          pwd
-          echo
-          echo "Files:"
-          find . -maxdepth 3 -type f -print | sort
+          echo "✗ cleaned review DOES NOT EXIST: $output_file"
           exit 1
         fi
-
+        
         echo "::endgroup::"
-
-        echo "::group::Review context"
-
-        if [ -f "review-context/code-review.md" ]; then
-          echo "✓ code-review.md exists"
-          echo "SIZE: $(wc -c < review-context/code-review.md) bytes"
-          echo "LINES: $(wc -l < review-context/code-review.md)"
+        
+        echo "::group::Cleanup log"
+        
+        log_file="review-context/${{ inputs.log_file }}"
+        
+        if [ -f "$log_file" ]; then
+          echo "✓ cleanup log exists"
+          echo "SIZE: $(wc -c < "$log_file") bytes"
+          echo
+          cat "$log_file"
         else
-          echo "✗ code-review.md DOES NOT EXIST"
+          echo "✗ cleanup log DOES NOT EXIST: $log_file"
           exit 1
         fi
-
+        
         echo "::endgroup::"
 
     - name: Cleanup review with OVH
@@ -101,7 +84,7 @@ runs:
       run: |
         set -euo pipefail
 
-        python3 "$GITHUB_ACTION_PATH/scripts/cleanup_ai_review.py"
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_cleanup_review.py"
 
     - name: Debug cleanup output
       shell: bash
@@ -114,7 +97,7 @@ runs:
 
         if [ -z "$output_file" ]; then
           output_file="${{ inputs.review_file }}"
-          output_file="${output_file%.json}-cleaned.json"
+          output_file="${output_file%.json}"
         fi
 
         if [ -f "$output_file" ]; then
