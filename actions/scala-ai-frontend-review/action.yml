@@ -52,15 +52,3 @@ runs:
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_frontend_review.py"
-
-    - name: Publish GitHub Frontend review
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        REPOSITORY: ${{ github.repository }}
-        PR_NUMBER: ${{ inputs.pr_number }}
-        REVIEW_MODEL: ${{ inputs.model }}
-        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
-      run: |
-        set -euo pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/publish_frontend_review.py"
