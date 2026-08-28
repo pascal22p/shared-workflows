@@ -14,15 +14,15 @@ output_file = Path("review-context") / os.environ.get("CLEANUP_OUTPUT_FILE")
 
 log_file = Path("review-context") / os.environ.get("CLEANUP_LOG_FILE")
 
-cleanup_prompt = Path(
-    SCRIPT_DIR / "cleanup_prompt.md"
-).read_text(
+context_file = Path("review-context") / os.environ["REVIEW_CONTEXT_FILE"]
+
+context = context_file.read_text(
     encoding="utf-8",
     errors="ignore",
 )
 
-context = Path(
-    "review-context/code-review.md"
+cleanup_prompt = Path(
+    SCRIPT_DIR / "cleanup_prompt.md"
 ).read_text(
     encoding="utf-8",
     errors="ignore",

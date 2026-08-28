@@ -24,6 +24,9 @@ inputs:
   log_file:
     description: "Output path for the cleanup decision log"
     required: true
+  context_file:
+    description: "Review context file"
+    required: true
 
 runs:
   using: composite
@@ -44,6 +47,7 @@ runs:
         REVIEW_FILE: ${{ inputs.review_file }}
         CLEANUP_OUTPUT_FILE: ${{ inputs.output_file }}
         CLEANUP_LOG_FILE: ${{ inputs.log_file }}
+        REVIEW_CONTEXT_FILE: ${{ inputs.context_file }}
       run: |
         set -euo pipefail
 
