@@ -34,43 +34,6 @@ runs:
         set -euo pipefail
         python3 -m pip install --quiet openai
 
-    - name: Debug cleanup output
-      shell: bash
-      run: |
-        set -euo pipefail
-        
-        echo "::group::Cleaned review"
-        
-        output_file="review-context/${{ inputs.output_file }}"
-        
-        if [ -f "$output_file" ]; then
-          echo "✓ cleaned review exists"
-          echo "SIZE: $(wc -c < "$output_file") bytes"
-          echo
-          cat "$output_file"
-        else
-          echo "✗ cleaned review DOES NOT EXIST: $output_file"
-          exit 1
-        fi
-        
-        echo "::endgroup::"
-        
-        echo "::group::Cleanup log"
-        
-        log_file="review-context/${{ inputs.log_file }}"
-        
-        if [ -f "$log_file" ]; then
-          echo "✓ cleanup log exists"
-          echo "SIZE: $(wc -c < "$log_file") bytes"
-          echo
-          cat "$log_file"
-        else
-          echo "✗ cleanup log DOES NOT EXIST: $log_file"
-          exit 1
-        fi
-        
-        echo "::endgroup::"
-
     - name: Cleanup review with OVH
       shell: bash
       env:
@@ -93,12 +56,7 @@ runs:
 
         echo "::group::Cleaned review"
 
-        output_file="${{ inputs.output_file }}"
-
-        if [ -z "$output_file" ]; then
-          output_file="${{ inputs.review_file }}"
-          output_file="${output_file%.json}"
-        fi
+        output_file="review-context/${{ inputs.output_file }}"
 
         if [ -f "$output_file" ]; then
           echo "✓ cleaned review exists"
@@ -106,7 +64,7 @@ runs:
           echo
           cat "$output_file"
         else
-          echo "✗ cleaned review DOES NOT EXIST"
+          echo "✗ cleaned review DOES NOT EXIST: $output_file"
           exit 1
         fi
 
@@ -114,11 +72,7 @@ runs:
 
         echo "::group::Cleanup log"
 
-        log_file="${{ inputs.log_file }}"
-
-        if [ -z "$log_file" ]; then
-          log_file="${output_file%.json}-log.json"
-        fi
+        log_file="review-context/${{ inputs.log_file }}"
 
         if [ -f "$log_file" ]; then
           echo "✓ cleanup log exists"
@@ -126,7 +80,7 @@ runs:
           echo
           cat "$log_file"
         else
-          echo "✗ cleanup log DOES NOT EXIST"
+          echo "✗ cleanup log DOES NOT EXIST: $log_file"
           exit 1
         fi
 
