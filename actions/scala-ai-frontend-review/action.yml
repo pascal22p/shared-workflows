@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        python3 -m pip install --quiet protobuf openai
+        python3 -m pip install --quiet openai
 
     - name: Build AI frontend review context
       shell: bash

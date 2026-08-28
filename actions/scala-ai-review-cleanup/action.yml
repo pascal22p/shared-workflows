@@ -52,14 +52,24 @@ runs:
 
         echo "::group::Candidate review"
 
-        if [ -f "${{ inputs.review_file }}" ]; then
+        review_file="review-context/${{ inputs.review_file }}"
+
+        echo "Looking for: $review_file"
+
+        if [ -f "$review_file" ]; then
           echo "✓ candidate review exists"
-          echo "SIZE: $(wc -c < "${{ inputs.review_file }}") bytes"
-          echo "LINES: $(wc -l < "${{ inputs.review_file }}")"
+          echo "SIZE: $(wc -c < "$review_file") bytes"
+          echo "LINES: $(wc -l < "$review_file")"
           echo
-          cat "${{ inputs.review_file }}"
+          cat "$review_file"
         else
           echo "✗ candidate review DOES NOT EXIST"
+          echo
+          echo "Current directory:"
+          pwd
+          echo
+          echo "Files:"
+          find . -maxdepth 3 -type f -print | sort
           exit 1
         fi
 
