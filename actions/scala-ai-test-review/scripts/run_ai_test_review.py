@@ -84,7 +84,7 @@ except json.JSONDecodeError:
     raise
 
 Path(
-    "review-context/test-review.json"
+    "review-context/review-test.json"
 ).write_text(
     json.dumps(
         review,
