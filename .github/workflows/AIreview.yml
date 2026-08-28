@@ -129,6 +129,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-final.json
+          context_file: code-review.md
 
 
   # ============================================================
@@ -174,6 +175,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-test-final.json
+          context_file: test-review.md
 
 
   # ============================================================
@@ -219,3 +221,4 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-frontend-final.json
+          context_file: frontend-review.md
