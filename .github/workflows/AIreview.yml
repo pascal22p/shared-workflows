@@ -18,6 +18,12 @@ on:
         required: true
         type: string
 
+      temperature:
+        description: "Temperature for the AI model"
+        required: false
+        type: string
+        default: "0.2"
+
     secrets:
       OVH_AI_ENDPOINTS_API_KEY:
         required: true
@@ -101,6 +107,7 @@ jobs:
         with:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
+          temperature: ${{ inputs.temperature }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
@@ -126,6 +133,7 @@ jobs:
         with:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
+          temperature: ${{ inputs.temperature }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
@@ -151,5 +159,6 @@ jobs:
         with:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
+          temperature: ${{ inputs.temperature }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}

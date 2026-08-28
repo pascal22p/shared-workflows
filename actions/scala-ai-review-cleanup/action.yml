@@ -1,0 +1,140 @@
+name: Scala AI Review Cleanup
+description: Validate and clean up findings produced by the Scala AI review
+
+inputs:
+  model:
+    description: "The OVH model name"
+    required: true
+  reasoning_effort:
+    description: "Reasoning depth for cleanup"
+    required: true
+  temperature:
+    description: "Temperature for the AI model"
+    required: false
+    default: "0"
+  ovh_api_key:
+    description: "OVH AI Endpoints API key"
+    required: true
+  review_file:
+    description: "Candidate review JSON to clean up"
+    required: true
+  output_file:
+    description: "Output path for the cleaned review JSON"
+    required: false
+  log_file:
+    description: "Output path for the cleanup decision log"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m pip install --quiet openai
+
+    - name: Debug cleanup inputs
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "::group::Cleanup parameters"
+
+        echo "model: ${{ inputs.model }}"
+        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
+        echo "temperature: ${{ inputs.temperature }}"
+        echo "review_file: ${{ inputs.review_file }}"
+        echo "output_file: ${{ inputs.output_file }}"
+        echo "log_file: ${{ inputs.log_file }}"
+
+        echo "::endgroup::"
+
+        echo "::group::Candidate review"
+
+        if [ -f "${{ inputs.review_file }}" ]; then
+          echo "✓ candidate review exists"
+          echo "SIZE: $(wc -c < "${{ inputs.review_file }}") bytes"
+          echo "LINES: $(wc -l < "${{ inputs.review_file }}")"
+          echo
+          cat "${{ inputs.review_file }}"
+        else
+          echo "✗ candidate review DOES NOT EXIST"
+          exit 1
+        fi
+
+        echo "::endgroup::"
+
+        echo "::group::Review context"
+
+        if [ -f "review-context/code-review.md" ]; then
+          echo "✓ code-review.md exists"
+          echo "SIZE: $(wc -c < review-context/code-review.md) bytes"
+          echo "LINES: $(wc -l < review-context/code-review.md)"
+        else
+          echo "✗ code-review.md DOES NOT EXIST"
+          exit 1
+        fi
+
+        echo "::endgroup::"
+
+    - name: Cleanup review with OVH
+      shell: bash
+      env:
+        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+        MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
+        REVIEW_FILE: ${{ inputs.review_file }}
+        CLEANUP_OUTPUT_FILE: ${{ inputs.output_file }}
+        CLEANUP_LOG_FILE: ${{ inputs.log_file }}
+      run: |
+        set -euo pipefail
+
+        python3 "$GITHUB_ACTION_PATH/scripts/cleanup_ai_review.py"
+
+    - name: Debug cleanup output
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "::group::Cleaned review"
+
+        output_file="${{ inputs.output_file }}"
+
+        if [ -z "$output_file" ]; then
+          output_file="${{ inputs.review_file }}"
+          output_file="${output_file%.json}-cleaned.json"
+        fi
+
+        if [ -f "$output_file" ]; then
+          echo "✓ cleaned review exists"
+          echo "SIZE: $(wc -c < "$output_file") bytes"
+          echo
+          cat "$output_file"
+        else
+          echo "✗ cleaned review DOES NOT EXIST"
+          exit 1
+        fi
+
+        echo "::endgroup::"
+
+        echo "::group::Cleanup log"
+
+        log_file="${{ inputs.log_file }}"
+
+        if [ -z "$log_file" ]; then
+          log_file="${output_file%.json}-log.json"
+        fi
+
+        if [ -f "$log_file" ]; then
+          echo "✓ cleanup log exists"
+          echo "SIZE: $(wc -c < "$log_file") bytes"
+          echo
+          cat "$log_file"
+        else
+          echo "✗ cleanup log DOES NOT EXIST"
+          exit 1
+        fi
+
+        echo "::endgroup::"

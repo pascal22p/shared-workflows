@@ -53,7 +53,7 @@ response = client.chat.completions.create(
             "content": context,
         },
     ],
-    temperature=0.2,
+    temperature=float(os.environ["TEMPERATURE"]),
     response_format={"type": "json_object"},
     reasoning_effort=os.environ["REASONING_EFFORT"],
     max_tokens=40000,
@@ -64,6 +64,8 @@ choice = response.choices[0]
 
 print(f"finish_reason: {choice.finish_reason}")
 print(f"usage: {response.usage}")
+print("=== MODEL PARAMETERS ===")
+print(f"temperature: {os.environ['TEMPERATURE']}, reasoning_effort: {os.environ['REASONING_EFFORT']}, model: {os.environ['REVIEW_MODEL']}")
 
 raw = choice.message.content or ""
 
