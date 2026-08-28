@@ -34,7 +34,7 @@ runs:
         set -euo pipefail
 
         python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py" \
-          review-context/context-context-code-review.md
+          review-context/context-code-review.md
 
     - name: Debug AI review context
       shell: bash
