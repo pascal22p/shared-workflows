@@ -57,7 +57,7 @@ jq -r '.[].filename' pr-files.json \
 
 gh api "repos/${REPOSITORY}/git/trees/${HEAD_SHA}?recursive=1" \
   --jq '.tree[].path' \
-  | grep -E '^(build\.sbt|project/[^/]+|doc/[^/]+|conf/[^/]+)$' \
+  | grep -E '^(project/[^/]+|doc/[^/]+|conf/[^/]+)$' \
   | grep -v '^conf/logback\.xml$' \
   | sort -u \
   > "$additional_files" || true

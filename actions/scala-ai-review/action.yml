@@ -8,6 +8,10 @@ inputs:
   reasoning_effort:
     description: "Reasoning depth"
     required: true
+  temperature:
+    description: "Temperature for the AI model"
+    required: false
+    default: "0.2"
   ovh_api_key:
     description: "OVH AI Endpoints API key"
     required: true
@@ -41,6 +45,7 @@ runs:
 
         echo "model: ${{ inputs.model }}"
         echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
+        echo "temperature: ${{ inputs.temperature }}"
         echo "pr_number: ${{ inputs.pr_number }}"
 
         echo "::endgroup::"
@@ -139,9 +144,24 @@ runs:
         OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py"
+
+    - name: Cleanup AI review
+        shell: bash
+        env:
+          OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+          REVIEW_MODEL: ${{ inputs.model }}
+          REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+          TEMPERATURE: ${{ inputs.temperature }}
+          REVIEW_FILE: review.json
+          CLEANUP_OUTPUT_FILE: review-final.json
+          CLEANUP_LOG_FILE: review-log.json
+        run: |
+          set -euo pipefail
+          python3 "$GITHUB_ACTION_PATH/scripts/cleanup_ai_review.py"
 
     - name: Publish GitHub review
       shell: bash
@@ -151,6 +171,7 @@ runs:
         PR_NUMBER: ${{ inputs.pr_number }}
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        CLEANUP_OUTPUT_FILE: review-final.json
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"
