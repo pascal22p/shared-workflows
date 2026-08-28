@@ -156,6 +156,25 @@ jobs:
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
+      - name: Cleanup Scala AI Review
+        uses: pascal22p/shared-workflows/actions/scala-ai-review-cleanup@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          temperature: ${{ inputs.temperature }}
+          ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
+          review_file: review-test.json
+          output_file: review-test-final.json
+          log_file: review-test-log.json
+
+      - name: Publish GitHub review
+        uses: pascal22p/shared-workflows/actions/scala-ai-review-publish@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          pr_number: ${{ needs.prepare.outputs.pr_number }}
+          review_file: review-test-final.json
+
 
   # ============================================================
   # Frontend elements review
@@ -181,3 +200,22 @@ jobs:
           temperature: ${{ inputs.temperature }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
+
+      - name: Cleanup Scala AI Review
+        uses: pascal22p/shared-workflows/actions/scala-ai-review-cleanup@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          temperature: ${{ inputs.temperature }}
+          ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
+          review_file: review-frontend.json
+          output_file: review-frontend-final.json
+          log_file: review-frontend-log.json
+
+      - name: Publish GitHub review
+        uses: pascal22p/shared-workflows/actions/scala-ai-review-publish@main
+        with:
+          model: ${{ inputs.model }}
+          reasoning_effort: ${{ inputs.reasoning_effort }}
+          pr_number: ${{ needs.prepare.outputs.pr_number }}
+          review_file: review-frontend-final.json
