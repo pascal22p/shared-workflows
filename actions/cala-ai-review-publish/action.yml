@@ -1,0 +1,32 @@
+name: Scala AI Review Publish
+description: Publish a Scala AI review to GitHub
+
+inputs:
+  model:
+    description: "The OVH model name"
+    required: true
+  reasoning_effort:
+    description: "Reasoning depth"
+    required: true
+  pr_number:
+    description: "Pull request number"
+    required: true
+  review_file:
+    description: "Review JSON relative to review-context"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Publish GitHub review
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        REVIEW_FILE: ${{ inputs.review_file }}
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"
