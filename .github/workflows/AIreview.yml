@@ -121,7 +121,7 @@ jobs:
           review_file: review.json
           output_file: review-final.json
           log_file: review-log.json
-          context_file: code-review.md
+          context_file: context-code-review.md
 
       - name: Publish GitHub review
         uses: pascal22p/shared-workflows/actions/scala-ai-review-publish@main
@@ -130,7 +130,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-final.json
-          context_file: code-review.md
+          context_file: context-code-review.md
 
 
   # ============================================================
@@ -168,7 +168,7 @@ jobs:
           review_file: review-test.json
           output_file: review-test-final.json
           log_file: review-test-log.json
-          context_file: test-review.md
+          context_file: context-test-review.md
 
       - name: Publish GitHub review
         uses: pascal22p/shared-workflows/actions/scala-ai-review-publish@main
@@ -177,7 +177,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-test-final.json
-          context_file: test-review.md
+          context_file: context-test-review.md
 
 
   # ============================================================
@@ -215,7 +215,7 @@ jobs:
           review_file: review-frontend.json
           output_file: review-frontend-final.json
           log_file: review-frontend-log.json
-          context_file: frontend-review.md
+          context_file: context-frontend-review.md
           
       - name: Publish GitHub review
         uses: pascal22p/shared-workflows/actions/scala-ai-review-publish@main
@@ -224,4 +224,4 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-frontend-final.json
-          context_file: frontend-review.md
+          context_file: context-frontend-review.md
