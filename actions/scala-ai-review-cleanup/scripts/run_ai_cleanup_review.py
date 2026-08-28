@@ -53,7 +53,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model=os.environ["REVIEW_MODEL"],
+    model=os.environ["MODEL"],
     messages=[
         {
             "role": "system",
