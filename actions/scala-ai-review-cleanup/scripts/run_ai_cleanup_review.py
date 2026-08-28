@@ -10,9 +10,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 
 review_file = Path("review-context") / os.environ["REVIEW_FILE"]
 
-output_file = Path("review-context") / os.environ.get("CLEANUP_OUTPUT_FILE")
+output_file = Path("review-context") / os.environ["CLEANUP_OUTPUT_FILE"]
 
-log_file = Path("review-context") / os.environ.get("CLEANUP_LOG_FILE")
+log_file = Path("review-context") / os.environ["CLEANUP_LOG_FILE"]
 
 context_file = Path("review-context") / os.environ["REVIEW_CONTEXT_FILE"]
 
