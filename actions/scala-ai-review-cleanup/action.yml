@@ -38,7 +38,7 @@ runs:
       shell: bash
       env:
         OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
-        MODEL: ${{ inputs.model }}
+        REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
         TEMPERATURE: ${{ inputs.temperature }}
         REVIEW_FILE: ${{ inputs.review_file }}
