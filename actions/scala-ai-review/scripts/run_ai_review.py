@@ -27,7 +27,7 @@ system_prompt = REVIEW_PROMPT.replace(
 )
 
 context = Path(
-    "review-context/code-review.md"
+    "review-context/context-code-review.md"
 ).read_text(
     encoding="utf-8",
     errors="ignore"

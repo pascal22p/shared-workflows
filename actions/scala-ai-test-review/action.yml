@@ -36,7 +36,7 @@ runs:
         set -euo pipefail
 
         python3 "$GITHUB_ACTION_PATH/scripts/build_test_review_context.py" \
-          review-context/test-review.md
+          review-context/context-test-review.md
 
     - name: Debug AI review context
       shell: bash
@@ -59,12 +59,12 @@ runs:
           exit 1
         fi
 
-        if [ -f "review-context/test-review.md" ]; then
-          echo "✓ test-review.md exists"
-          echo "SIZE: $(wc -c < review-context/test-review.md) bytes"
-          echo "LINES: $(wc -l < review-context/test-review.md)"
+        if [ -f "review-context/context-test-review.md" ]; then
+          echo "✓ context-test-review.md exists"
+          echo "SIZE: $(wc -c < review-context/context-test-review.md) bytes"
+          echo "LINES: $(wc -l < review-context/context-test-review.md)"
         else
-          echo "✗ test-review.md DOES NOT EXIST"
+          echo "✗ context-test-review.md DOES NOT EXIST"
           exit 1
         fi
 

@@ -34,7 +34,7 @@ runs:
         set -euo pipefail
 
         python3 "$GITHUB_ACTION_PATH/scripts/build_review_context.py" \
-          review-context/code-review.md
+          review-context/context-context-code-review.md
 
     - name: Debug AI review context
       shell: bash
@@ -119,21 +119,21 @@ runs:
 
         echo "::group::Context sent to LLM"
 
-        if [ -f "review-context/code-review.md" ]; then
-          echo "✓ code-review.md exists"
-          echo "SIZE: $(wc -c < review-context/code-review.md) bytes"
-          echo "LINES: $(wc -l < review-context/code-review.md)"
+        if [ -f "review-context/context-code-review.md" ]; then
+          echo "✓ context-code-review.md exists"
+          echo "SIZE: $(wc -c < review-context/context-code-review.md) bytes"
+          echo "LINES: $(wc -l < review-context/context-code-review.md)"
 
-          if [ -s "review-context/code-review.md" ]; then
+          if [ -s "review-context/context-code-review.md" ]; then
             echo "STATUS: ✓ contains content"
           else
             echo "STATUS: ⚠ EMPTY"
           fi
 
           echo
-          cat review-context/code-review.md
+          cat review-context/context-code-review.md
         else
-          echo "✗ code-review.md DOES NOT EXIST"
+          echo "✗ context-code-review.md DOES NOT EXIST"
         fi
 
         echo "::endgroup::"
