@@ -150,18 +150,18 @@ runs:
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py"
 
     - name: Cleanup AI review
-        shell: bash
-        env:
-          OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
-          REVIEW_MODEL: ${{ inputs.model }}
-          REASONING_EFFORT: ${{ inputs.reasoning_effort }}
-          TEMPERATURE: ${{ inputs.temperature }}
-          REVIEW_FILE: review.json
-          CLEANUP_OUTPUT_FILE: review-final.json
-          CLEANUP_LOG_FILE: review-log.json
-        run: |
-          set -euo pipefail
-          python3 "$GITHUB_ACTION_PATH/scripts/cleanup_ai_review.py"
+      shell: bash
+      env:
+        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
+        REVIEW_FILE: review.json
+        CLEANUP_OUTPUT_FILE: review-final.json
+        CLEANUP_LOG_FILE: review-log.json
+      run: |
+        set -euo pipefail
+        python3 "$GITHUB_ACTION_PATH/scripts/cleanup_ai_review.py"
 
     - name: Publish GitHub review
       shell: bash
