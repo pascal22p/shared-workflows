@@ -144,7 +144,7 @@ def main():
     # Load review
     # --------------------------------------------------------
 
-    review_path = Path("review-context") / os.environ["CLEANUP_OUTPUT_FILE"]
+    review_path = Path("review-context") / os.environ["REVIEW_FILE"]
     if not review_path.exists():
         print("review.json not found")
         return
