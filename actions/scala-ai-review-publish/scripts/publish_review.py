@@ -169,7 +169,7 @@ def main():
     risk = review.get("risk", "LOW")
 
     review_body = (
-        "## 🤖 Scala AI Code Review\n\n"
+        f"## 🤖 {os.environ['REVIEW_TITLE']}\n\n"
         f"**Risk:** `{risk}`\n\n"
         f"{summary}\n\n"
         "Review context:\n"
