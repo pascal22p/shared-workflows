@@ -130,6 +130,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-final.json
+          review_title: "Scala AI Backend Code Review"
 
 
   # ============================================================
@@ -176,7 +177,7 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-test-final.json
-
+          review_title: "Scala AI Test Code Review"
 
   # ============================================================
   # Frontend elements review
@@ -222,3 +223,4 @@ jobs:
           reasoning_effort: ${{ inputs.reasoning_effort }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
           review_file: review-frontend-final.json
+          review_title: "Scala AI Frontend Code Review"

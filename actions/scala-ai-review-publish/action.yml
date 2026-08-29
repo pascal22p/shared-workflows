@@ -14,6 +14,9 @@ inputs:
   review_file:
     description: "Review JSON relative to review-context"
     required: true
+  review_title:
+    description: "Title of the review"
+    required: true
 
 runs:
   using: composite
@@ -27,6 +30,8 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
         REVIEW_FILE: ${{ inputs.review_file }}
+        REVIEW_TITLE: ${{ inputs.review_title }}
+
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"
