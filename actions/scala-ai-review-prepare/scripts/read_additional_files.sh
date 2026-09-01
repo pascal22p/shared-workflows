@@ -1,6 +1,8 @@
 set -euo pipefail
 
-mkdir -p review-context/additional
+CONTEXT_DIR="${CONTEXT_DIR:-review-context}"
+
+mkdir -p "${CONTEXT_DIR}/additional"
 
 fetch_file() {
   local file="$1"
@@ -75,7 +77,7 @@ while IFS= read -r file; do
   fetch_file \
     "$file" \
     "$HEAD_SHA" \
-    "review-context/additional/${file}" \
+    "${CONTEXT_DIR}/additional/${file}" \
     "[FILE DID NOT EXIST]"
 
 done < "$additional_files"
