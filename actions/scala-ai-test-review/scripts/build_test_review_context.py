@@ -1,5 +1,5 @@
 from pathlib import Path
-import sys
+import argparse
 
 
 def fence_lang(name: str) -> str:
@@ -37,6 +37,11 @@ def build_context(
         additional_dir: Path,
         diff_path: Path,
 ):
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     with output_path.open("w", encoding="utf-8") as out:
         # ----------------------------------------------------
         # Changed files
@@ -102,25 +107,37 @@ def build_context(
 
 
 def main():
-    if len(sys.argv) != 2:
-        raise SystemExit(
-            "Usage: build_test_review_context.py <output-path>"
-        )
+    parser = argparse.ArgumentParser(
+        description="Build the test review context."
+    )
 
-    output = Path(sys.argv[1])
+    parser.add_argument(
+        "output",
+        help="Path to the generated context file.",
+    )
 
-    before = Path("review-context/before")
-    after = Path("review-context/after")
-    additional = Path("review-context/additional")
-    pr_diff = Path("review-context/pr.diff")
+    parser.add_argument(
+        "--context-dir",
+        type=Path,
+        default=Path("review-context"),
+        help=(
+            "Directory containing before/, after/, "
+            "additional/, and pr.diff."
+        ),
+    )
+
+    args = parser.parse_args()
+
+    context_dir = args.context_dir
+    output = Path(args.output)
 
     build_context(
         output,
-        before,
-        after,
-        additional,
-        pr_diff,
-    )
+        context_dir / "before",
+        context_dir / "after",
+        context_dir / "additional",
+        context_dir / "pr.diff",
+        )
 
     if output.exists():
         print(

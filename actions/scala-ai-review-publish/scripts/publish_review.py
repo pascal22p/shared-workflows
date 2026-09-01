@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import re
@@ -62,15 +63,21 @@ def parse_diff(diff: str) -> dict[str, set[int]]:
             # context line: still a valid RIGHT-side target
             valid_lines.setdefault(current_file, set()).add(new_line)
             new_line += 1
-    
+
     return valid_lines
 
 
-def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_model: str, reasoning_effort: str) -> list[dict]:
+def map_findings(
+        findings: list[dict],
+        valid_lines: dict[str, set[int]],
+        review_model: str,
+        reasoning_effort: str,
+) -> list[dict]:
     """
     Map AI findings to valid lines in the diff, snapping to nearest valid line if needed.
     """
     comments = []
+
     for finding in findings:
         file = finding.get("file")
         line = finding.get("line")
@@ -121,10 +128,26 @@ def map_findings(findings: list[dict], valid_lines: dict[str, set[int]], review_
                 f"with reasoning effort {reasoning_effort}"
             )
         })
+
     return comments
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Publish the AI review to GitHub."
+    )
+
+    parser.add_argument(
+        "--context-dir",
+        type=Path,
+        default=Path("review-context"),
+        help="Directory containing the review file.",
+    )
+
+    args = parser.parse_args()
+
+    context_dir = args.context_dir
+
     repo = os.environ["REPOSITORY"]
     pr = os.environ["PR_NUMBER"]
     review_model = os.environ["REVIEW_MODEL"]
@@ -144,12 +167,16 @@ def main():
     # Load review
     # --------------------------------------------------------
 
-    review_path = Path("review-context") / os.environ["REVIEW_FILE"]
+    review_path = context_dir / os.environ["REVIEW_FILE"]
+
     if not review_path.exists():
         print("review.json not found")
         return
 
-    review = json.loads(review_path.read_text())
+    review = json.loads(
+        review_path.read_text()
+    )
+
     findings = review.get("findings", [])
 
     # --------------------------------------------------------
@@ -162,11 +189,24 @@ def main():
     # Build inline comments
     # --------------------------------------------------------
 
-    comments = map_findings(findings, valid_lines, review_model, reasoning_effort)
+    comments = map_findings(
+        findings,
+        valid_lines,
+        review_model,
+        reasoning_effort,
+    )
+
     comments = comments[:50]
 
-    summary = review.get("summary", "AI code review completed.")
-    risk = review.get("risk", "LOW")
+    summary = review.get(
+        "summary",
+        "AI code review completed.",
+    )
+
+    risk = review.get(
+        "risk",
+        "LOW",
+    )
 
     review_body = (
         f"## 🤖 {os.environ['REVIEW_TITLE']}\n\n"
@@ -208,7 +248,10 @@ def main():
     )
 
     if result.returncode != 0:
-        print("Inline comment review failed, falling back to summary-only:")
+        print(
+            "Inline comment review failed, "
+            "falling back to summary-only:"
+        )
         print("STDOUT:", result.stdout)
         print("STDERR:", result.stderr)
 
@@ -237,9 +280,14 @@ def main():
             print("STDERR:", result.stderr)
             raise SystemExit(result.returncode)
 
-        print("Published summary-only review (inline comments failed).")
+        print(
+            "Published summary-only review "
+            "(inline comments failed)."
+        )
     else:
-        print(f"Published {len(comments)} inline comments.")
+        print(
+            f"Published {len(comments)} inline comments."
+        )
 
 
 if __name__ == "__main__":
