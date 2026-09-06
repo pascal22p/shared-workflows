@@ -301,6 +301,23 @@ The candidate may be wrong about:
 
 Always prefer the actual supplied repository evidence over the candidate's interpretation.
 
+## Compilation error findings
+
+The supplied PR has already passed a CI build (compilation and test stage) before this
+review runs. Therefore:
+
+* Reject any candidate whose claimed defect is a compilation error, type error, syntax
+  error, missing import, or any other issue that would have caused the build to fail.
+* This applies even if the candidate's reasoning about the code looks locally correct —
+  if the claimed failure mode is "this won't compile" or "this is a type mismatch that
+  the compiler would reject," treat it as disproven by the fact that CI already built
+  the AFTER code successfully.
+* Do not reject findings that merely involve compiling code that behaves incorrectly at
+  runtime (logic errors, wrong types accepted silently via implicit conversions,
+  runtime exceptions, etc.) — only reject claims of an actual compile-time failure.
+* Record these rejections in the cleanup log with the reason: "Claimed compilation
+  failure; CI already builds this code successfully prior to review."
+
 ## Uncertainty
 
 Do not reject a candidate solely because absolute certainty is impossible.
