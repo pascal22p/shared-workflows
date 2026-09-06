@@ -15,6 +15,11 @@ inputs:
     required: false
     default: "0.2"
 
+  max_tokens:
+    description: "Maximum tokens for the AI model"
+    required: false
+    default: "40000"
+
   ovh_api_key:
     description: "OVH AI Endpoints API key"
     required: true
@@ -49,6 +54,7 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
         TEMPERATURE: ${{ inputs.temperature }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_frontend_review.py"

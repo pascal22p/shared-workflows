@@ -60,7 +60,7 @@ def run_review(context_dir: Path) -> dict:
         temperature=float(os.environ["TEMPERATURE"]),
         response_format={"type": "json_object"},
         reasoning_effort=os.environ["REASONING_EFFORT"],
-        max_tokens=40000,
+        max_tokens=int(os.environ["MAX_TOKENS"]),
         timeout=1800.0,
     )
 
@@ -84,7 +84,9 @@ def run_review(context_dir: Path) -> dict:
         "reasoning_effort: "
         f"{os.environ['REASONING_EFFORT']}, "
         "model: "
-        f"{os.environ['REVIEW_MODEL']}",
+        f"{os.environ['REVIEW_MODEL']}, "
+        "max_tokens: "
+        f"{os.environ['MAX_TOKENS']}",
         file=sys.stderr,
     )
 
