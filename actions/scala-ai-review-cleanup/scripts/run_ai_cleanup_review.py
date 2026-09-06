@@ -71,7 +71,7 @@ def run_cleanup(context_dir: Path) -> dict:
         temperature=float(os.environ["TEMPERATURE"]),
         response_format={"type": "json_object"},
         reasoning_effort=os.environ["REASONING_EFFORT"],
-        max_tokens=60000,
+        max_tokens=int(os.environ["MAX_TOKENS"]),
         timeout=1800.0,
     )
 
@@ -100,6 +100,10 @@ def run_cleanup(context_dir: Path) -> dict:
     )
     print(
         f"model: {os.environ['REVIEW_MODEL']}",
+        file=sys.stderr,
+    )
+    print(
+        f"max_tokens: {os.environ['MAX_TOKENS']}",
         file=sys.stderr,
     )
 

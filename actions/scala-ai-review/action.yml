@@ -12,6 +12,10 @@ inputs:
     description: "Temperature for the AI model"
     required: false
     default: "0.2"
+  max_tokens:
+    description: "Maximum tokens for the AI model"
+    required: false
+    default: "60000"
   ovh_api_key:
     description: "OVH AI Endpoints API key"
     required: true
@@ -46,6 +50,7 @@ runs:
         echo "model: ${{ inputs.model }}"
         echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
         echo "temperature: ${{ inputs.temperature }}"
+        echo "max_tokens: ${{ inputs.max_tokens }}"
         echo "pr_number: ${{ inputs.pr_number }}"
 
         echo "::endgroup::"
@@ -145,6 +150,7 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
         TEMPERATURE: ${{ inputs.temperature }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_review.py"

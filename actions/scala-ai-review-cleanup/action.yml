@@ -12,6 +12,10 @@ inputs:
     description: "Temperature for the AI model"
     required: false
     default: "0"
+  max_tokens:
+    description: "Maximum tokens for the AI model"
+    required: false
+    default: "60000"
   ovh_api_key:
     description: "OVH AI Endpoints API key"
     required: true
@@ -44,6 +48,7 @@ runs:
         REVIEW_MODEL: ${{ inputs.model }}
         REASONING_EFFORT: ${{ inputs.reasoning_effort }}
         TEMPERATURE: ${{ inputs.temperature }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
         REVIEW_FILE: ${{ inputs.review_file }}
         CLEANUP_OUTPUT_FILE: ${{ inputs.output_file }}
         CLEANUP_LOG_FILE: ${{ inputs.log_file }}

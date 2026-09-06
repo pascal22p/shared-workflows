@@ -24,6 +24,12 @@ on:
         type: string
         default: "0.2"
 
+      max_tokens:
+        description: "Max tokens for the AI model"
+        required: false
+        type: string
+        default: "60000"
+
     secrets:
       OVH_AI_ENDPOINTS_API_KEY:
         required: true
@@ -108,6 +114,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
@@ -117,6 +124,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           review_file: review.json
           output_file: review-final.json
@@ -155,6 +163,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
@@ -164,6 +173,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           review_file: review-test.json
           output_file: review-test-final.json
@@ -201,6 +211,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           pr_number: ${{ needs.prepare.outputs.pr_number }}
 
@@ -210,6 +221,7 @@ jobs:
           model: ${{ inputs.model }}
           reasoning_effort: ${{ inputs.reasoning_effort }}
           temperature: ${{ inputs.temperature }}
+          max_tokens: ${{ inputs.max_tokens }}
           ovh_api_key: ${{ secrets.OVH_AI_ENDPOINTS_API_KEY }}
           review_file: review-frontend.json
           output_file: review-frontend-final.json
