@@ -262,6 +262,98 @@ Keep them when the code introduces a real maintenance problem such as:
 
 Reject findings that are merely preferences between valid implementations.
 
+## Test and regression-coverage validation
+
+Test-related findings are allowed when they identify a meaningful regression-detection or behavioral-verification problem introduced by the PR.
+
+Do NOT automatically reject a candidate merely because it concerns tests.
+
+Distinguish between:
+
+1. **Pure coverage suggestions**
+
+  * "This method should have a unit test."
+  * "Add more edge-case tests."
+  * "Test coverage could be improved."
+
+   Reject these unless the missing test leaves a concrete PR-introduced behavior or regression materially undetected.
+
+2. **Missing regression protection**
+
+  * The PR introduces or changes a behavior, invariant, error path, persistence rule, API contract, or user-visible behavior.
+  * Existing tests do not exercise the changed behavior.
+  * As a result, an important regression can pass CI undetected.
+
+   These may be valid findings.
+
+3. **Incorrect or stale tests**
+
+  * Existing tests still encode the old behavior after the PR changes the contract.
+  * Tests pass while failing to verify the new required behavior.
+  * Tests exercise the wrong field, path, response, query, or model behavior.
+
+   These may be valid findings.
+
+4. **Missing tests for a concrete bug**
+
+  * The PR contains a behavior that is incorrect or fragile.
+  * The absence of a test is relevant because the existing test suite provides no protection against that specific failure.
+
+   The primary finding should still describe the concrete behavioral risk, not merely say "add a test."
+
+### Test-finding validation
+
+For every test-related candidate:
+
+1. Determine exactly what behavior changed in the PR.
+2. Determine whether that behavior is important to the correctness of the change.
+3. Inspect the existing tests for coverage of that behavior.
+4. Determine whether an existing test would fail if the claimed regression occurred.
+5. Determine whether the missing coverage creates a meaningful risk that an incorrect implementation could pass CI.
+6. Check whether the candidate is merely requesting a test for completeness or style.
+7. Reject purely aspirational coverage requests.
+8. Keep findings where the missing or incorrect test coverage leaves a concrete, PR-introduced behavioral regression or contract violation undetected.
+
+Do not use the blanket rule:
+
+> "Missing tests are not code defects."
+
+Instead ask:
+
+> "Does this PR introduce a meaningful behavior or invariant for which the repository has no effective regression protection?"
+
+If yes, the finding may be valid even when the production implementation itself is currently correct.
+
+### Test-finding severity
+
+Do not assign severity solely because a test is missing.
+
+Severity should reflect the consequence of the unprotected behavior:
+
+* LOW: limited or low-impact regression risk.
+* MEDIUM: meaningful functionality can regress without detection.
+* HIGH: important functionality, data integrity, or a critical contract can regress without detection.
+* CRITICAL: absence of regression protection can allow severe correctness, security, or data-loss failures to reach production.
+
+Avoid severity inflation for ordinary unit-test gaps.
+
+### Test finding wording
+
+When keeping a test-related finding, describe:
+
+* the behavior introduced or changed by the PR;
+* the relevant missing or ineffective test coverage;
+* the concrete regression that could pass CI undetected;
+* why existing tests do not already protect against it.
+
+Do NOT write findings that merely say:
+
+> "Add tests for X."
+
+Instead explain the behavioral risk:
+
+> "The PR introduces X behavior, but the test suite does not exercise the new path. A regression where Y occurs would therefore still pass CI."
+
 ## Candidate decision
 
 For each candidate, choose exactly one:
