@@ -184,7 +184,7 @@ def main():
     )
     parser.add_argument(
         "--max-tokens",
-        type=str,
+        type=int,
         required=True,
         help="maximum number of tokens to use.",
     )

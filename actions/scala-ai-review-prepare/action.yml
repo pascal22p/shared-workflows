@@ -91,23 +91,24 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        REPOSITORY: ${{ github.repository }}
-        BASE_SHA: ${{ env.BASE_SHA }}
-        HEAD_SHA: ${{ env.HEAD_SHA }}
       run: |
         set -euo pipefail
-        bash review-scripts/read_changed_files.sh
+        bash review-scripts/read_changed_files.sh \
+          --repository "${{ github.repository }}" \
+          --base-sha "${{ env.BASE_SHA }}" \
+          --head-sha "${{ env.HEAD_SHA }}" \
+          --context-dir "review-context"
 
     - name: Capture additional files
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        REPOSITORY: ${{ github.repository }}
-        BASE_SHA: ${{ env.BASE_SHA }}
-        HEAD_SHA: ${{ env.HEAD_SHA }}
       run: |
         set -euo pipefail
-        bash review-scripts/read_additional_files.sh
+        bash review-scripts/read_additional_files.sh \
+          --repository "${{ github.repository }}" \
+          --head-sha "${{ env.HEAD_SHA }}" \
+          --context-dir "review-context"
 
     - name: Get complete PR diff
       shell: bash

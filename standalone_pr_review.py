@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -58,7 +57,6 @@ def github_diff(token: str, repository: str, pr_number: int) -> str:
 def run_python_script(
         script: Path,
         cwd: Path,
-        environment: dict[str, str],
         *args: str,
 ):
     command = [sys.executable, str(script), *args]
@@ -68,7 +66,6 @@ def run_python_script(
     result = subprocess.run(
         command,
         cwd=cwd,
-        env=environment,
         text=True,
         capture_output=True,
     )
@@ -88,16 +85,15 @@ def run_python_script(
 def run_shell_script(
         script: Path,
         cwd: Path,
-        environment: dict[str, str],
+        *args: str,
 ):
-    command = ["bash", str(script)]
+    command = ["bash", str(script), *args]
 
     print(f"Running: {' '.join(command)}", file=sys.stderr)
 
     result = subprocess.run(
         command,
         cwd=cwd,
-        env=environment,
         text=True,
         capture_output=True,
     )
@@ -159,6 +155,12 @@ def main():
         "--temperature",
         default="0.2",
         help="Model temperature. Defaults to 0.2.",
+    )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=40000,
+        help="Maximum tokens for the AI model. Defaults to 40000.",
     )
     parser.add_argument(
         "--source-root",
@@ -308,55 +310,55 @@ def main():
         encoding="utf-8",
     )
 
-    environment = os.environ.copy()
-
-    environment.update({
-        "REPOSITORY": args.repository,
-        "PR_NUMBER": str(args.pr),
-        "BASE_SHA": base_sha,
-        "HEAD_SHA": head_sha,
-        "GH_TOKEN": args.github_token,
-        "GITHUB_TOKEN": args.github_token,
-        "CONTEXT_DIR": "review-context",
-    })
-
     run_shell_script(
         prepare_scripts / "read_changed_files.sh",
         run_dir,
-        environment,
-        )
+        "--repository",
+        args.repository,
+        "--base-sha",
+        base_sha,
+        "--head-sha",
+        head_sha,
+        "--context-dir",
+        "review-context",
+        "--github-token",
+        args.github_token,
+    )
 
     run_shell_script(
         prepare_scripts / "read_additional_files.sh",
         run_dir,
-        environment,
-        )
+        "--repository",
+        args.repository,
+        "--head-sha",
+        head_sha,
+        "--context-dir",
+        "review-context",
+        "--github-token",
+        args.github_token,
+    )
 
     run_python_script(
         code_scripts / "build_review_context.py",
         run_dir,
-        environment,
         "review-context/context-code-review.md",
         )
 
     run_python_script(
         test_scripts / "build_test_review_context.py",
         run_dir,
-        environment,
         "review-context/context-test-review.md",
         )
 
     run_python_script(
         frontend_scripts / "build_frontend_review_context.py",
         run_dir,
-        environment,
         "review-context/context-frontend-review.md",
         )
 
     run_python_script(
         code_scripts / "run_ai_review.py",
         run_dir,
-        environment,
         "--model",
         args.model,
         "--reasoning-effort",
@@ -365,12 +367,13 @@ def main():
         str(args.temperature),
         "--api-key",
         args.openai_token,
+        "--max-tokens",
+        str(args.max_tokens),
         )
 
     run_python_script(
         test_scripts / "run_ai_test_review.py",
         run_dir,
-        environment,
         "--model",
         args.model,
         "--reasoning-effort",
@@ -379,12 +382,13 @@ def main():
         str(args.temperature),
         "--api-key",
         args.openai_token,
+        "--max-tokens",
+        str(args.max_tokens),
         )
 
     run_python_script(
         frontend_scripts / "run_ai_frontend_review.py",
         run_dir,
-        environment,
         "--model",
         args.model,
         "--reasoning-effort",
@@ -393,6 +397,8 @@ def main():
         str(args.temperature),
         "--api-key",
         args.openai_token,
+        "--max-tokens",
+        str(args.max_tokens),
         )
 
     cleanup_jobs = [
@@ -420,7 +426,6 @@ def main():
         run_python_script(
             cleanup_scripts / "run_ai_cleanup_review.py",
             run_dir,
-            environment,
             "--review-file",
             job["review_file"],
             "--output-file",
@@ -437,6 +442,8 @@ def main():
             str(args.temperature),
             "--api-key",
             args.openai_token,
+            "--max-tokens",
+            str(args.max_tokens),
             )
 
     final_files = {

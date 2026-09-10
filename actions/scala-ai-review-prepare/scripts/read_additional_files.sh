@@ -1,6 +1,39 @@
 set -euo pipefail
 
-CONTEXT_DIR="${CONTEXT_DIR:-review-context}"
+CONTEXT_DIR="review-context"
+REPOSITORY=""
+HEAD_SHA=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repository)
+      REPOSITORY="$2"
+      shift 2
+      ;;
+    --head-sha)
+      HEAD_SHA="$2"
+      shift 2
+      ;;
+    --context-dir)
+      CONTEXT_DIR="$2"
+      shift 2
+      ;;
+    --github-token)
+      export GH_TOKEN="$2"
+      export GITHUB_TOKEN="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$REPOSITORY" ] || [ -z "$HEAD_SHA" ]; then
+  echo "Missing required arguments: --repository, --head-sha" >&2
+  exit 1
+fi
 
 mkdir -p "${CONTEXT_DIR}/additional"
 
