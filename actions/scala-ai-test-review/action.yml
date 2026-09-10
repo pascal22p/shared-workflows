@@ -84,5 +84,5 @@ runs:
           --model "${{ inputs.model }}" \
           --reasoning-effort "${{ inputs.reasoning_effort }}" \
           --temperature "${{ inputs.temperature }}" \
-          --api-key "${{ inputs.ovh_api_key }}"
+          --api-key "${{ inputs.ovh_api_key }}" \
           --max-tokens "${{ inputs.max_tokens }}"
