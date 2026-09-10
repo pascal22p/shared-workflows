@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import sys
 
 from pathlib import Path
@@ -11,7 +10,13 @@ from openai import OpenAI
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-def run_review(context_dir: Path) -> dict:
+def run_review(
+        context_dir: Path,
+        model: str,
+        reasoning_effort: str,
+        temperature: float,
+        api_key: str,
+) -> dict:
     core_prompt = Path(
         context_dir / "core_review_prompt.md"
     ).read_text(
@@ -40,13 +45,15 @@ def run_review(context_dir: Path) -> dict:
 
     client = OpenAI(
         base_url="https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
-        api_key=os.environ["OVH_AI_ENDPOINTS_API_KEY"],
+        api_key=api_key,
         timeout=1800.0,
         max_retries=0,
     )
 
+    print(f"=== MODEL PARAMETERS === {model}")
+
     response = client.chat.completions.create(
-        model=os.environ["REVIEW_MODEL"],
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -57,9 +64,9 @@ def run_review(context_dir: Path) -> dict:
                 "content": context,
             },
         ],
-        temperature=float(os.environ["TEMPERATURE"]),
+        temperature=temperature,
         response_format={"type": "json_object"},
-        reasoning_effort=os.environ["REASONING_EFFORT"],
+        reasoning_effort=reasoning_effort,
         max_tokens=60000,
         timeout=1800.0,
     )
@@ -80,11 +87,11 @@ def run_review(context_dir: Path) -> dict:
     )
     print(
         "temperature: "
-        f"{os.environ['TEMPERATURE']}, "
+        f"{temperature}, "
         "reasoning_effort: "
-        f"{os.environ['REASONING_EFFORT']}, "
+        f"{reasoning_effort}, "
         "model: "
-        f"{os.environ['REVIEW_MODEL']}",
+        f"{model}",
         file=sys.stderr,
     )
 
@@ -150,10 +157,40 @@ def main():
             "Defaults to review-context."
         ),
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help="The OVH model name.",
+    )
+    parser.add_argument(
+        "--reasoning-effort",
+        type=str,
+        required=True,
+        help="Reasoning depth.",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.2,
+        help="Temperature for the AI model. Defaults to 0.2.",
+    )
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        required=True,
+        help="OVH AI Endpoints API key.",
+    )
 
     args = parser.parse_args()
 
-    review = run_review(args.context_dir)
+    review = run_review(
+        context_dir=args.context_dir,
+        model=args.model,
+        reasoning_effort=args.reasoning_effort,
+        temperature=args.temperature,
+        api_key=args.api_key,
+    )
 
     print(
         json.dumps(

@@ -317,10 +317,6 @@ def main():
         "HEAD_SHA": head_sha,
         "GH_TOKEN": args.github_token,
         "GITHUB_TOKEN": args.github_token,
-        "OVH_AI_ENDPOINTS_API_KEY": args.openai_token,
-        "REVIEW_MODEL": args.model,
-        "REASONING_EFFORT": args.reasoning_effort,
-        "TEMPERATURE": args.temperature,
         "CONTEXT_DIR": "review-context",
     })
 
@@ -361,18 +357,42 @@ def main():
         code_scripts / "run_ai_review.py",
         run_dir,
         environment,
+        "--model",
+        args.model,
+        "--reasoning-effort",
+        args.reasoning_effort,
+        "--temperature",
+        str(args.temperature),
+        "--api-key",
+        args.openai_token,
         )
 
     run_python_script(
         test_scripts / "run_ai_test_review.py",
         run_dir,
         environment,
+        "--model",
+        args.model,
+        "--reasoning-effort",
+        args.reasoning_effort,
+        "--temperature",
+        str(args.temperature),
+        "--api-key",
+        args.openai_token,
         )
 
     run_python_script(
         frontend_scripts / "run_ai_frontend_review.py",
         run_dir,
         environment,
+        "--model",
+        args.model,
+        "--reasoning-effort",
+        args.reasoning_effort,
+        "--temperature",
+        str(args.temperature),
+        "--api-key",
+        args.openai_token,
         )
 
     cleanup_jobs = [
@@ -397,17 +417,26 @@ def main():
     ]
 
     for job in cleanup_jobs:
-        environment.update({
-            "REVIEW_FILE": job["review_file"],
-            "CLEANUP_OUTPUT_FILE": job["output_file"],
-            "CLEANUP_LOG_FILE": job["log_file"],
-            "REVIEW_CONTEXT_FILE": job["context_file"],
-        })
-
         run_python_script(
             cleanup_scripts / "run_ai_cleanup_review.py",
             run_dir,
             environment,
+            "--review-file",
+            job["review_file"],
+            "--output-file",
+            job["output_file"],
+            "--log-file",
+            job["log_file"],
+            "--context-file",
+            job["context_file"],
+            "--model",
+            args.model,
+            "--reasoning-effort",
+            args.reasoning_effort,
+            "--temperature",
+            str(args.temperature),
+            "--api-key",
+            args.openai_token,
             )
 
     final_files = {

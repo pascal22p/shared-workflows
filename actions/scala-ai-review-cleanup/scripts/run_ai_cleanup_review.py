@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import sys
 
 from pathlib import Path
@@ -11,16 +10,23 @@ from openai import OpenAI
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-def run_cleanup(context_dir: Path) -> dict:
-    review_file = context_dir / os.environ["REVIEW_FILE"]
+def run_cleanup(
+        context_dir: Path,
+        review_file: str,
+        output_file: str,
+        log_file: str,
+        context_file: str,
+        model: str,
+        reasoning_effort: str,
+        temperature: float,
+        api_key: str,
+) -> dict:
+    review_path = context_dir / review_file
+    output_path = context_dir / output_file
+    log_path = context_dir / log_file
+    context_path = context_dir / context_file
 
-    output_file = context_dir / os.environ["CLEANUP_OUTPUT_FILE"]
-
-    log_file = context_dir / os.environ["CLEANUP_LOG_FILE"]
-
-    context_file = context_dir / os.environ["REVIEW_CONTEXT_FILE"]
-
-    context = context_file.read_text(
+    context = context_path.read_text(
         encoding="utf-8",
         errors="ignore",
     )
@@ -33,7 +39,7 @@ def run_cleanup(context_dir: Path) -> dict:
     )
 
     candidate_review = json.loads(
-        review_file.read_text(
+        review_path.read_text(
             encoding="utf-8",
             errors="ignore",
         )
@@ -51,13 +57,13 @@ def run_cleanup(context_dir: Path) -> dict:
 
     client = OpenAI(
         base_url="https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
-        api_key=os.environ["OVH_AI_ENDPOINTS_API_KEY"],
+        api_key=api_key,
         timeout=1800.0,
         max_retries=0,
     )
 
     response = client.chat.completions.create(
-        model=os.environ["REVIEW_MODEL"],
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -68,9 +74,9 @@ def run_cleanup(context_dir: Path) -> dict:
                 "content": user_prompt,
             },
         ],
-        temperature=float(os.environ["TEMPERATURE"]),
+        temperature=temperature,
         response_format={"type": "json_object"},
-        reasoning_effort=os.environ["REASONING_EFFORT"],
+        reasoning_effort=reasoning_effort,
         max_tokens=60000,
         timeout=1800.0,
     )
@@ -91,15 +97,15 @@ def run_cleanup(context_dir: Path) -> dict:
         file=sys.stderr,
     )
     print(
-        f"temperature: {os.environ['TEMPERATURE']}",
+        f"temperature: {temperature}",
         file=sys.stderr,
     )
     print(
-        f"reasoning_effort: {os.environ['REASONING_EFFORT']}",
+        f"reasoning_effort: {reasoning_effort}",
         file=sys.stderr,
     )
     print(
-        f"model: {os.environ['REVIEW_MODEL']}",
+        f"model: {model}",
         file=sys.stderr,
     )
 
@@ -108,15 +114,15 @@ def run_cleanup(context_dir: Path) -> dict:
         file=sys.stderr,
     )
     print(
-        f"review_file: {review_file}",
+        f"review_file: {review_path}",
         file=sys.stderr,
     )
     print(
-        f"output_file: {output_file}",
+        f"output_file: {output_path}",
         file=sys.stderr,
     )
     print(
-        f"log_file: {log_file}",
+        f"log_file: {log_path}",
         file=sys.stderr,
     )
 
@@ -153,32 +159,32 @@ def run_cleanup(context_dir: Path) -> dict:
     review = result["review"]
     cleanup_log = result["cleanup"]
 
-    output_file.parent.mkdir(
+    output_path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    log_file.parent.mkdir(
+    log_path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    output_file.write_text(
+    output_path.write_text(
         json.dumps(review, indent=2),
         encoding="utf-8",
     )
 
-    log_file.write_text(
+    log_path.write_text(
         json.dumps(cleanup_log, indent=2),
         encoding="utf-8",
     )
 
     print(
-        f"review output: {output_file}",
+        f"review output: {output_path}",
         file=sys.stderr,
     )
     print(
-        f"cleanup log: {log_file}",
+        f"cleanup log: {log_path}",
         file=sys.stderr,
     )
 
@@ -199,10 +205,68 @@ def main():
             "review files. Defaults to review-context."
         ),
     )
+    parser.add_argument(
+        "--review-file",
+        type=str,
+        required=True,
+        help="Candidate review JSON filename relative to context-dir.",
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        required=True,
+        help="Output path for the cleaned review JSON relative to context-dir.",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=str,
+        required=True,
+        help="Output path for the cleanup decision log relative to context-dir.",
+    )
+    parser.add_argument(
+        "--context-file",
+        type=str,
+        required=True,
+        help="Review context file relative to context-dir.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help="The OVH model name.",
+    )
+    parser.add_argument(
+        "--reasoning-effort",
+        type=str,
+        required=True,
+        help="Reasoning depth for cleanup.",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.0,
+        help="Temperature for the AI model. Defaults to 0.0.",
+    )
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        required=True,
+        help="OVH AI Endpoints API key.",
+    )
 
     args = parser.parse_args()
 
-    run_cleanup(args.context_dir)
+    run_cleanup(
+        context_dir=args.context_dir,
+        review_file=args.review_file,
+        output_file=args.output_file,
+        log_file=args.log_file,
+        context_file=args.context_file,
+        model=args.model,
+        reasoning_effort=args.reasoning_effort,
+        temperature=args.temperature,
+        api_key=args.api_key,
+    )
 
 
 if __name__ == "__main__":

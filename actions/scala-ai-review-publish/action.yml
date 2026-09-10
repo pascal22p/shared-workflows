@@ -25,13 +25,12 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        REPOSITORY: ${{ github.repository }}
-        PR_NUMBER: ${{ inputs.pr_number }}
-        REVIEW_MODEL: ${{ inputs.model }}
-        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
-        REVIEW_FILE: ${{ inputs.review_file }}
-        REVIEW_TITLE: ${{ inputs.review_title }}
-
       run: |
         set -euo pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py"
+        python3 "$GITHUB_ACTION_PATH/scripts/publish_review.py" \
+          --repository "${{ github.repository }}" \
+          --pr-number "${{ inputs.pr_number }}" \
+          --model "${{ inputs.model }}" \
+          --reasoning-effort "${{ inputs.reasoning_effort }}" \
+          --review-file "${{ inputs.review_file }}" \
+          --review-title "${{ inputs.review_title }}"
