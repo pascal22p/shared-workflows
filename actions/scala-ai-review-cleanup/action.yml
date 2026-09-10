@@ -43,20 +43,19 @@ runs:
 
     - name: Cleanup review with OVH
       shell: bash
-      env:
-        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
-        REVIEW_MODEL: ${{ inputs.model }}
-        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
-        TEMPERATURE: ${{ inputs.temperature }}
-        MAX_TOKENS: ${{ inputs.max_tokens }}
-        REVIEW_FILE: ${{ inputs.review_file }}
-        CLEANUP_OUTPUT_FILE: ${{ inputs.output_file }}
-        CLEANUP_LOG_FILE: ${{ inputs.log_file }}
-        REVIEW_CONTEXT_FILE: ${{ inputs.context_file }}
       run: |
         set -euo pipefail
 
-        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_cleanup_review.py"
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_cleanup_review.py" \
+          --review-file "${{ inputs.review_file }}" \
+          --output-file "${{ inputs.output_file }}" \
+          --log-file "${{ inputs.log_file }}" \
+          --context-file "${{ inputs.context_file }}" \
+          --model "${{ inputs.model }}" \
+          --reasoning-effort "${{ inputs.reasoning_effort }}" \
+          --temperature "${{ inputs.temperature }}" \
+          --api-key "${{ inputs.ovh_api_key }}"
+          --max-tokens "${{ inputs.max_tokens }}"
 
     - name: Debug cleanup output
       shell: bash

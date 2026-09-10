@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import re
 import subprocess
 
@@ -143,15 +142,50 @@ def main():
         default=Path("review-context"),
         help="Directory containing the review file.",
     )
+    parser.add_argument(
+        "--repository",
+        type=str,
+        required=True,
+        help="GitHub repository name (e.g. owner/repo).",
+    )
+    parser.add_argument(
+        "--pr-number",
+        type=int,
+        required=True,
+        help="Pull request number.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help="The OVH model name.",
+    )
+    parser.add_argument(
+        "--reasoning-effort",
+        type=str,
+        required=True,
+        help="Reasoning depth.",
+    )
+    parser.add_argument(
+        "--review-file",
+        type=str,
+        default="review.json",
+        help="Review JSON file name relative to context-dir.",
+    )
+    parser.add_argument(
+        "--review-title",
+        type=str,
+        required=True,
+        help="Title of the review.",
+    )
 
     args = parser.parse_args()
 
     context_dir = args.context_dir
-
-    repo = os.environ["REPOSITORY"]
-    pr = os.environ["PR_NUMBER"]
-    review_model = os.environ["REVIEW_MODEL"]
-    reasoning_effort = os.environ["REASONING_EFFORT"]
+    repo = args.repository
+    pr = args.pr_number
+    review_model = args.model
+    reasoning_effort = args.reasoning_effort
 
     # --------------------------------------------------------
     # Get diff
@@ -167,10 +201,10 @@ def main():
     # Load review
     # --------------------------------------------------------
 
-    review_path = context_dir / os.environ["REVIEW_FILE"]
+    review_path = context_dir / args.review_file
 
     if not review_path.exists():
-        print("review.json not found")
+        print(f"{args.review_file} not found")
         return
 
     review = json.loads(
@@ -209,7 +243,7 @@ def main():
     )
 
     review_body = (
-        f"## 🤖 {os.environ['REVIEW_TITLE']}\n\n"
+        f"## 🤖 {args.review_title}\n\n"
         f"**Risk:** `{risk}`\n\n"
         f"{summary}\n\n"
         "Review context:\n"

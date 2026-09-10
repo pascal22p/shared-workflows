@@ -49,12 +49,11 @@ runs:
 
     - name: Review frontend elements with OVH
       shell: bash
-      env:
-        OVH_AI_ENDPOINTS_API_KEY: ${{ inputs.ovh_api_key }}
-        REVIEW_MODEL: ${{ inputs.model }}
-        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
-        TEMPERATURE: ${{ inputs.temperature }}
-        MAX_TOKENS: ${{ inputs.max_tokens }}
       run: |
         set -euo pipefail
-        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_frontend_review.py"
+        python3 "$GITHUB_ACTION_PATH/scripts/run_ai_frontend_review.py" \
+          --model "${{ inputs.model }}" \
+          --reasoning-effort "${{ inputs.reasoning_effort }}" \
+          --temperature "${{ inputs.temperature }}" \
+          --api-key "${{ inputs.ovh_api_key }}" \
+          --max-tokens "${{ inputs.max_tokens }}"
