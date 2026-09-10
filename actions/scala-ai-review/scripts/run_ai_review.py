@@ -16,6 +16,7 @@ def run_review(
         reasoning_effort: str,
         temperature: float,
         api_key: str,
+        max_tokens: int
 ) -> dict:
     core_prompt = Path(
         context_dir / "core_review_prompt.md"
@@ -50,8 +51,6 @@ def run_review(
         max_retries=0,
     )
 
-    print(f"=== MODEL PARAMETERS === {model}")
-
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -67,7 +66,7 @@ def run_review(
         temperature=temperature,
         response_format={"type": "json_object"},
         reasoning_effort=reasoning_effort,
-        max_tokens=60000,
+        max_tokens=max_tokens,
         timeout=1800.0,
     )
 
@@ -92,6 +91,8 @@ def run_review(
         f"{reasoning_effort}, "
         "model: "
         f"{model}",
+        "max_tokens: ",
+        f"{max_tokens}",
         file=sys.stderr,
     )
 
@@ -181,6 +182,12 @@ def main():
         required=True,
         help="OVH AI Endpoints API key.",
     )
+    parser.add_argument(
+        "--max-tokens",
+        type=str,
+        required=True,
+        help="maximum number of tokens to use.",
+    )
 
     args = parser.parse_args()
 
@@ -190,6 +197,7 @@ def main():
         reasoning_effort=args.reasoning_effort,
         temperature=args.temperature,
         api_key=args.api_key,
+        max_tokens=args.max_tokens
     )
 
     print(

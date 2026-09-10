@@ -20,6 +20,7 @@ def run_cleanup(
         reasoning_effort: str,
         temperature: float,
         api_key: str,
+        max_tokens: int
 ) -> dict:
     review_path = context_dir / review_file
     output_path = context_dir / output_file
@@ -77,7 +78,7 @@ def run_cleanup(
         temperature=temperature,
         response_format={"type": "json_object"},
         reasoning_effort=reasoning_effort,
-        max_tokens=60000,
+        max_tokens=max_tokens,
         timeout=1800.0,
     )
 
@@ -106,6 +107,10 @@ def run_cleanup(
     )
     print(
         f"model: {model}",
+        file=sys.stderr,
+    )
+    print(
+        f"max_tokens: {max_tokens}",
         file=sys.stderr,
     )
 
@@ -253,6 +258,12 @@ def main():
         required=True,
         help="OVH AI Endpoints API key.",
     )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        required=True,
+        help="maximum number of tokens to use.",
+    )
 
     args = parser.parse_args()
 
@@ -266,6 +277,7 @@ def main():
         reasoning_effort=args.reasoning_effort,
         temperature=args.temperature,
         api_key=args.api_key,
+        max_tokens=args.max_tokens
     )
 
 

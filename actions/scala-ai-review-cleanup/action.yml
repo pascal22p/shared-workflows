@@ -12,6 +12,10 @@ inputs:
     description: "Temperature for the AI model"
     required: false
     default: "0"
+  max_tokens:
+    description: "Maximum tokens for the AI model"
+    required: false
+    default: "60000"
   ovh_api_key:
     description: "OVH AI Endpoints API key"
     required: true
@@ -51,6 +55,7 @@ runs:
           --reasoning-effort "${{ inputs.reasoning_effort }}" \
           --temperature "${{ inputs.temperature }}" \
           --api-key "${{ inputs.ovh_api_key }}"
+          --max-tokens "${{ inputs.max_tokens }}"
 
     - name: Debug cleanup output
       shell: bash
