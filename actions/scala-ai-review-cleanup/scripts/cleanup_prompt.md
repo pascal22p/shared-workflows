@@ -16,6 +16,14 @@ Do not accept a candidate merely because its explanation sounds plausible.
 
 For every candidate, actively try to disprove it before keeping it.
 
+Pre-existing does not automatically mean out of scope. PR causality and PR relevance are separate questions.
+
+Ask both:
+1. Did the PR introduce the underlying defect?
+2. Is the defect materially relevant to code or behavior changed by the PR?
+
+A "no" to the first question does not imply a "no" to the second.
+
 Use the complete supplied review context as evidence, including:
 
 * BEFORE code;
@@ -132,25 +140,42 @@ For database findings, trace:
 
 `model → query parameters → SQL → schema → result → parser → model`
 
-### 7. Check PR causality
+### 7. Check PR causality and diff relevance
 
-Determine whether the PR actually introduced the problem.
+Determine whether the PR introduced the issue, changed the conditions under which it occurs, or materially changed the code path in which it occurs.
 
-Compare the relevant BEFORE and AFTER behaviour.
+A finding does NOT need to be a newly introduced defect to be retained.
 
-Reject findings where:
+Reject findings only when the issue is both:
+* pre-existing; AND
+* unrelated to the behavior, execution path, or surrounding code materially affected by the PR.
 
-* the same defect already existed before the PR;
-* the changed code does not affect the claimed behaviour;
-* the candidate identifies an unrelated existing problem.
+Keep findings when the candidate identifies a real issue in code that is:
+* directly modified by the PR;
+* in the execution path materially changed by the PR;
+* immediately surrounding code whose behavior is relevant to the changed logic;
+* newly exposed, more likely, or otherwise made more consequential by the PR; or
+* a concrete failure mode that the PR's change should reasonably account for, even if the underlying operation itself was already present.
 
-Keep findings where the PR:
+In particular, do not reject a finding solely because the exact expression containing the defect was unchanged. The PR diff may make an unchanged operation relevant by changing the conditions, ordering, inputs, concurrency, control flow, or error-handling context around it.
 
-* introduces the defect;
-* changes behaviour in a way that creates the defect;
-* removes a safeguard;
-* changes an assumption relied upon elsewhere;
-* makes a previously safe path unsafe.
+Distinguish between:
+
+1. Pre-existing and unrelated:
+   The same issue existed before the PR and the PR does not materially affect the relevant code path or conditions.
+   -> REJECT.
+
+2. Pre-existing but diff-relevant:
+   The underlying failure existed before, but the PR changes the surrounding behavior, execution path, inputs, ordering, concurrency, or assumptions such that the issue is relevant to the change.
+   -> KEEP if the finding identifies a concrete problem.
+
+3. PR-introduced:
+   The PR creates the defect or removes a safeguard.
+   -> KEEP.
+
+Do not require that the exact line containing the failure be modified. Evaluate whether the PR makes the affected behavior part of the changed contract or execution path.
+
+When a finding is pre-existing but diff-relevant, rewrite it to avoid falsely claiming that the PR introduced the underlying defect. Explain instead how the changed code interacts with the existing failure mode and why that interaction warrants attention in this PR.
 
 ### 8. Check the complete impact claim
 
@@ -364,7 +389,11 @@ For each candidate, choose exactly one:
 
 ### KEEP
 
-Use when the candidate survives investigation and represents a real issue introduced by the PR.
+Use when the candidate survives investigation and represents a real, actionable issue that is either:
+* introduced by the PR; or
+* materially relevant to behavior, execution paths, assumptions, or error handling changed by the PR.
+
+The underlying defect does not have to be newly introduced if the PR makes the affected behavior part of the changed path or contract.
 
 ### REJECT
 
