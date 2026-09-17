@@ -1,13 +1,19 @@
 import argparse
 import json
 import sys
+import time
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 from openai import OpenAI
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def run_review(
@@ -18,6 +24,9 @@ def run_review(
         api_key: str,
         max_tokens: int
 ) -> dict:
+    started_at = utc_now()
+    start_time = time.perf_counter()
+
     core_prompt = Path(
         context_dir / "core_review_prompt.md"
     ).read_text(
@@ -51,47 +60,157 @@ def run_review(
         max_retries=0,
     )
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": context,
+                },
+            ],
+            temperature=temperature,
+            response_format={"type": "json_object"},
+            reasoning_effort=reasoning_effort,
+            max_tokens=max_tokens,
+            timeout=1800.0,
+        )
+    except Exception as exc:
+        duration_seconds = time.perf_counter() - start_time
+
+        metadata = {
+            "status": "error",
+            "started_at": started_at,
+            "completed_at": utc_now(),
+            "duration_seconds": round(duration_seconds, 3),
+            "request": {
+                "model": model,
+                "temperature": temperature,
+                "reasoning_effort": reasoning_effort,
+                "max_tokens": max_tokens,
+                "response_format": "json_object",
             },
-            {
-                "role": "user",
-                "content": context,
+            "input": {
+                "core_prompt_chars": len(core_prompt),
+                "system_prompt_chars": len(system_prompt),
+                "context_chars": len(context),
             },
-        ],
-        temperature=temperature,
-        response_format={"type": "json_object"},
-        reasoning_effort=reasoning_effort,
-        max_tokens=max_tokens,
-        timeout=1800.0,
-    )
+            "error": {
+                "type": type(exc).__name__,
+                "message": str(exc),
+            },
+        }
+
+        context_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        (context_dir / "review-frontend-metadata.json").write_text(
+            json.dumps(
+                metadata,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+        raise
+
+    duration_seconds = time.perf_counter() - start_time
 
     choice = response.choices[0]
+    usage = response.usage
+
+    completion_tokens_details = getattr(
+        usage,
+        "completion_tokens_details",
+        None,
+    )
+
+    prompt_tokens_details = getattr(
+        usage,
+        "prompt_tokens_details",
+        None,
+    )
+
+    metadata = {
+        "status": "success",
+        "started_at": started_at,
+        "completed_at": utc_now(),
+        "duration_seconds": round(duration_seconds, 3),
+
+        "request": {
+            "model": model,
+            "temperature": temperature,
+            "reasoning_effort": reasoning_effort,
+            "max_tokens": max_tokens,
+            "response_format": "json_object",
+        },
+
+        "response": {
+            "id": response.id,
+            "model": response.model,
+            "finish_reason": choice.finish_reason,
+            "response_length_chars": len(
+                choice.message.content or ""
+            ),
+        },
+
+        "usage": {
+            "prompt_tokens": usage.prompt_tokens,
+            "completion_tokens": usage.completion_tokens,
+            "total_tokens": usage.total_tokens,
+            "prompt_tokens_details": (
+                prompt_tokens_details.model_dump()
+                if prompt_tokens_details is not None
+                else None
+            ),
+            "completion_tokens_details": (
+                completion_tokens_details.model_dump()
+                if completion_tokens_details is not None
+                else None
+            ),
+        },
+
+        "input": {
+            "core_prompt_chars": len(core_prompt),
+            "system_prompt_chars": len(system_prompt),
+            "context_chars": len(context),
+        },
+    }
 
     print(
         f"finish_reason: {choice.finish_reason}",
         file=sys.stderr,
     )
+
     print(
-        f"usage: {response.usage}",
+        f"duration: {duration_seconds:.3f}s",
         file=sys.stderr,
     )
+
+    print(
+        f"usage: {usage}",
+        file=sys.stderr,
+    )
+
     print(
         "=== MODEL PARAMETERS ===",
         file=sys.stderr,
     )
+
     print(
         "temperature: "
         f"{temperature}, "
         "reasoning_effort: "
         f"{reasoning_effort}, "
         "model: "
-        f"{model}",
-        "max_tokens: ",
+        f"{model}, "
+        "max_tokens: "
         f"{max_tokens}",
         file=sys.stderr,
     )
@@ -104,6 +223,28 @@ def run_review(
     )
 
     if choice.finish_reason == "length":
+        metadata["status"] = "error"
+        metadata["error"] = {
+            "type": "RuntimeError",
+            "message": (
+                "OVH model response was truncated because it reached "
+                "the output token limit"
+            ),
+        }
+
+        context_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        (context_dir / "review-frontend-metadata.json").write_text(
+            json.dumps(
+                metadata,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
         raise RuntimeError(
             "OVH model response was truncated because it reached "
             "the output token limit"
@@ -124,6 +265,26 @@ def run_review(
             "=== RAW MODEL RESPONSE END ===",
             file=sys.stderr,
         )
+
+        metadata["status"] = "error"
+        metadata["error"] = {
+            "type": "JSONDecodeError",
+            "message": "Model response was not valid JSON",
+        }
+
+        context_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        (context_dir / "review-frontend-metadata.json").write_text(
+            json.dumps(
+                metadata,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
         raise
 
     context_dir.mkdir(
@@ -134,6 +295,14 @@ def run_review(
     (context_dir / "review-frontend.json").write_text(
         json.dumps(
             review,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    (context_dir / "review-frontend-metadata.json").write_text(
+        json.dumps(
+            metadata,
             indent=2,
         ),
         encoding="utf-8",
@@ -158,35 +327,40 @@ def main():
             "Defaults to review-context."
         ),
     )
+
     parser.add_argument(
         "--model",
         type=str,
         required=True,
         help="The OVH model name.",
     )
+
     parser.add_argument(
         "--reasoning-effort",
         type=str,
         required=True,
         help="Reasoning depth.",
     )
+
     parser.add_argument(
         "--temperature",
         type=float,
         default=0.2,
         help="Temperature for the AI model. Defaults to 0.2.",
     )
+
     parser.add_argument(
         "--api-key",
         type=str,
         required=True,
         help="OVH AI Endpoints API key.",
     )
+
     parser.add_argument(
         "--max-tokens",
         type=int,
         required=True,
-        help="maximum number of tokens to use.",
+        help="Maximum number of tokens to use.",
     )
 
     args = parser.parse_args()
@@ -197,7 +371,7 @@ def main():
         reasoning_effort=args.reasoning_effort,
         temperature=args.temperature,
         api_key=args.api_key,
-        max_tokens=args.max_tokens
+        max_tokens=args.max_tokens,
     )
 
     print(
