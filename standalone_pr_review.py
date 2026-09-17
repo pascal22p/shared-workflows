@@ -9,6 +9,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from pathlib import Path
 
+
 GITHUB_API = "https://api.github.com"
 
 
@@ -61,7 +62,10 @@ def run_python_script(
 ):
     command = [sys.executable, str(script), *args]
 
-    print(f"Running: {' '.join(command)}", file=sys.stderr)
+    print(
+        f"Running: {' '.join(command)}",
+        file=sys.stderr,
+    )
 
     result = subprocess.run(
         command,
@@ -71,10 +75,18 @@ def run_python_script(
     )
 
     if result.stdout:
-        print(result.stdout, file=sys.stderr, end="")
+        print(
+            result.stdout,
+            file=sys.stderr,
+            end="",
+        )
 
     if result.stderr:
-        print(result.stderr, file=sys.stderr, end="")
+        print(
+            result.stderr,
+            file=sys.stderr,
+            end="",
+        )
 
     if result.returncode != 0:
         raise RuntimeError(
@@ -89,7 +101,10 @@ def run_shell_script(
 ):
     command = ["bash", str(script), *args]
 
-    print(f"Running: {' '.join(command)}", file=sys.stderr)
+    print(
+        f"Running: {' '.join(command)}",
+        file=sys.stderr,
+    )
 
     result = subprocess.run(
         command,
@@ -99,10 +114,18 @@ def run_shell_script(
     )
 
     if result.stdout:
-        print(result.stdout, file=sys.stderr, end="")
+        print(
+            result.stdout,
+            file=sys.stderr,
+            end="",
+        )
 
     if result.stderr:
-        print(result.stderr, file=sys.stderr, end="")
+        print(
+            result.stderr,
+            file=sys.stderr,
+            end="",
+        )
 
     if result.returncode != 0:
         raise RuntimeError(
@@ -112,7 +135,87 @@ def run_shell_script(
 
 def require_file(path: Path):
     if not path.exists():
-        raise RuntimeError(f"Required file does not exist: {path}")
+        raise RuntimeError(
+            f"Required file does not exist: {path}"
+        )
+
+
+def load_metadata(path: Path) -> dict:
+    require_file(path)
+
+    return json.loads(
+        path.read_text(
+            encoding="utf-8",
+            errors="ignore",
+        )
+    )
+
+
+def build_token_usage_markdown(
+        metadata_files: list[tuple[str, Path]],
+) -> str:
+    rows = []
+
+    total_input_tokens = 0
+    total_output_tokens = 0
+    total_tokens = 0
+
+    for name, path in metadata_files:
+        metadata = load_metadata(path)
+
+        usage = metadata.get("usage", {})
+
+        input_tokens = usage.get("prompt_tokens") or 0
+        output_tokens = usage.get("completion_tokens") or 0
+        tokens = usage.get("total_tokens")
+
+        if tokens is None:
+            tokens = input_tokens + output_tokens
+
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
+        total_tokens += tokens
+
+        rows.append(
+            (
+                name,
+                input_tokens,
+                output_tokens,
+                tokens,
+            )
+        )
+
+    lines = [
+        "## Token Usage",
+        "",
+        "| Stage | Input Tokens | Output Tokens | Total Tokens |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+
+    for (
+            name,
+            input_tokens,
+            output_tokens,
+            tokens,
+    ) in rows:
+        lines.append(
+            f"| {name} | "
+            f"{input_tokens:,} | "
+            f"{output_tokens:,} | "
+            f"{tokens:,} |"
+        )
+
+    lines.extend([
+        "",
+        f"**Total Input Tokens:** {total_input_tokens:,}",
+        "",
+        f"**Total Output Tokens:** {total_output_tokens:,}",
+        "",
+        f"**Total Tokens:** {total_tokens:,}",
+        "",
+    ])
+
+    return "\n".join(lines)
 
 
 def main():
@@ -186,24 +289,28 @@ def main():
             / "scala-ai-review-prepare"
             / "scripts"
     )
+
     code_scripts = (
             source_root
             / "actions"
             / "scala-ai-review"
             / "scripts"
     )
+
     test_scripts = (
             source_root
             / "actions"
             / "scala-ai-test-review"
             / "scripts"
     )
+
     frontend_scripts = (
             source_root
             / "actions"
             / "scala-ai-frontend-review"
             / "scripts"
     )
+
     cleanup_scripts = (
             source_root
             / "actions"
@@ -228,7 +335,10 @@ def main():
     for path in required_files:
         require_file(path)
 
-    print(f"Getting PR #{args.pr} information...", file=sys.stderr)
+    print(
+        f"Getting PR #{args.pr} information...",
+        file=sys.stderr,
+    )
 
     pr = github_json(
         args.github_token,
@@ -238,30 +348,64 @@ def main():
     base_sha = pr["base"]["sha"]
     head_sha = pr["head"]["sha"]
 
-    print(f"Base SHA: {base_sha}", file=sys.stderr)
-    print(f"Head SHA: {head_sha}", file=sys.stderr)
+    print(
+        f"Base SHA: {base_sha}",
+        file=sys.stderr,
+    )
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    print(
+        f"Head SHA: {head_sha}",
+        file=sys.stderr,
+    )
 
-    output_root.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).strftime(
+        "%Y%m%d-%H%M%S"
+    )
 
-    run_dir = output_root / f"pr-{args.pr}-{timestamp}"
+    output_root.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    run_dir = (
+            output_root
+            / f"pr-{args.pr}-{args.model}-{args.reasoning_effort}-{timestamp}"
+    )
 
     suffix = 1
+
     while run_dir.exists():
-        run_dir = output_root / f"pr-{args.pr}-{timestamp}-{suffix}"
+        run_dir = (
+                output_root
+                / (
+                    f"pr-{args.pr}-{args.model}-"
+                    f"{args.reasoning_effort}-{timestamp}-{suffix}"
+                )
+        )
         suffix += 1
 
-    run_dir.mkdir(parents=True, exist_ok=False)
+    run_dir.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
 
-    print(f"Run directory: {run_dir}", file=sys.stderr)
+    print(
+        f"Run directory: {run_dir}",
+        file=sys.stderr,
+    )
 
     (run_dir / "pr.json").write_text(
-        json.dumps(pr, indent=2),
+        json.dumps(
+            pr,
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
-    print("Getting PR files...", file=sys.stderr)
+    print(
+        "Getting PR files...",
+        file=sys.stderr,
+    )
 
     pr_files = github_json(
         args.github_token,
@@ -269,23 +413,38 @@ def main():
     )
 
     (run_dir / "pr-files.json").write_text(
-        json.dumps(pr_files, indent=2),
+        json.dumps(
+            pr_files,
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
-    changed_files = [item["filename"] for item in pr_files]
+    changed_files = [
+        item["filename"]
+        for item in pr_files
+    ]
 
     (run_dir / "changed-files.txt").write_text(
         "\n".join(changed_files) + "\n",
         encoding="utf-8",
         )
 
-    core_prompt_source = prepare_scripts / "core_review_prompt.md"
-    core_prompt_target = (
-            run_dir / "review-context" / "core_review_prompt.md"
+    core_prompt_source = (
+            prepare_scripts
+            / "core_review_prompt.md"
     )
 
-    core_prompt_target.parent.mkdir(parents=True, exist_ok=True)
+    core_prompt_target = (
+            run_dir
+            / "review-context"
+            / "core_review_prompt.md"
+    )
+
+    core_prompt_target.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     core_prompt_target.write_text(
         core_prompt_source.read_text(
@@ -297,7 +456,10 @@ def main():
 
     require_file(core_prompt_target)
 
-    print("Getting complete PR diff...", file=sys.stderr)
+    print(
+        "Getting complete PR diff...",
+        file=sys.stderr,
+    )
 
     diff = github_diff(
         args.github_token,
@@ -305,7 +467,11 @@ def main():
         args.pr,
     )
 
-    (run_dir / "review-context" / "pr.diff").write_text(
+    (
+            run_dir
+            / "review-context"
+            / "pr.diff"
+    ).write_text(
         diff,
         encoding="utf-8",
     )
@@ -323,7 +489,7 @@ def main():
         "review-context",
         "--github-token",
         args.github_token,
-    )
+        )
 
     run_shell_script(
         prepare_scripts / "read_additional_files.sh",
@@ -336,7 +502,7 @@ def main():
         "review-context",
         "--github-token",
         args.github_token,
-    )
+        )
 
     run_python_script(
         code_scripts / "build_review_context.py",
@@ -447,8 +613,16 @@ def main():
             )
 
     final_files = {
-        "code": run_dir / "review-context" / "review-final.json",
-        "test": run_dir / "review-context" / "review-test-final.json",
+        "code": (
+                run_dir
+                / "review-context"
+                / "review-final.json"
+        ),
+        "test": (
+                run_dir
+                / "review-context"
+                / "review-test-final.json"
+        ),
         "frontend": (
                 run_dir
                 / "review-context"
@@ -462,7 +636,9 @@ def main():
         require_file(path)
 
         final_reviews[name] = json.loads(
-            path.read_text(encoding="utf-8")
+            path.read_text(
+                encoding="utf-8"
+            )
         )
 
     result = {
@@ -484,10 +660,42 @@ def main():
         encoding="utf-8",
     )
 
+    metadata_files = [
+        (
+            "Code Review",
+            run_dir
+            / "review-context"
+            / "review-metadata.json",
+        ),
+        (
+            "Test Review",
+            run_dir
+            / "review-context"
+            / "review-test-metadata.json",
+        ),
+        (
+            "Frontend Review",
+            run_dir
+            / "review-context"
+            / "review-frontend-metadata.json",
+        ),
+        (
+            "Cleanup",
+            run_dir
+            / "review-context"
+            / "review-cleanup-metadata.json",
+        ),
+    ]
+
     markdown = build_review_markdown(
         args.repository,
         args.pr,
         final_reviews,
+        model=args.model,
+        reasoning_effort=args.reasoning_effort,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        metadata_files=metadata_files,
     )
 
     markdown_file = run_dir / "review-result.md"
@@ -501,7 +709,11 @@ def main():
         f"\nMarkdown review: {markdown_file}"
     )
 
-def review_to_markdown(title: str, review: dict) -> str:
+
+def review_to_markdown(
+        title: str,
+        review: dict,
+) -> str:
     lines = [
         f"# {title}",
         "",
@@ -524,7 +736,10 @@ def review_to_markdown(title: str, review: dict) -> str:
             "",
         ])
 
-    findings = review.get("findings", [])
+    findings = review.get(
+        "findings",
+        [],
+    )
 
     lines.extend([
         f"## Findings ({len(findings)})",
@@ -538,21 +753,35 @@ def review_to_markdown(title: str, review: dict) -> str:
         ])
         return "\n".join(lines)
 
-    for index, finding in enumerate(findings, start=1):
-        severity = finding.get("severity", "MEDIUM")
+    for index, finding in enumerate(
+            findings,
+            start=1,
+    ):
+        severity = finding.get(
+            "severity",
+            "MEDIUM",
+        )
+
         finding_title = finding.get(
             "title",
             "Code review finding",
         )
+
         file = finding.get("file")
         line = finding.get("line")
-        body = finding.get("body", "")
+        body = finding.get(
+            "body",
+            "",
+        )
 
         location = ""
+
         if file:
             location = f"`{file}"
+
             if line:
                 location += f":{line}"
+
             location += "`"
 
         lines.extend([
@@ -579,12 +808,49 @@ def build_review_markdown(
         repository: str,
         pull_request: int,
         reviews: dict[str, dict],
+        model: str | None = None,
+        reasoning_effort: str | None = None,
+        temperature: str | float | None = None,
+        max_tokens: int | str | None = None,
+        metadata_files: list[tuple[str, Path]] | None = None,
 ) -> str:
+    metadata = [
+        f"**Repository:** `{repository}`",
+        f"**Pull Request:** `#{pull_request}`",
+    ]
+
+    if model is not None:
+        metadata.append(
+            f"**Model:** `{model}`"
+        )
+
+    if reasoning_effort is not None:
+        metadata.append(
+            f"**Reasoning Effort:** `{reasoning_effort}`"
+        )
+
+    if temperature is not None:
+        metadata.append(
+            f"**Temperature:** `{temperature}`"
+        )
+
+    if max_tokens is not None:
+        metadata.append(
+            f"**Max Tokens:** `{max_tokens}`"
+        )
+
+    metadata_lines = (
+            [
+                f"{item}  "
+                for item in metadata[:-1]
+            ]
+            + [metadata[-1]]
+    )
+
     lines = [
         "# Scala AI Pull Request Review",
         "",
-        f"**Repository:** `{repository}`  ",
-        f"**Pull Request:** `#{pull_request}`",
+        *metadata_lines,
         "",
         "---",
         "",
@@ -603,12 +869,21 @@ def build_review_markdown(
                 reviews[key],
             )
         )
+
         lines.extend([
             "---",
             "",
         ])
 
+    if metadata_files:
+        lines.append(
+            build_token_usage_markdown(
+                metadata_files
+            )
+        )
+
     return "\n".join(lines)
+
 
 if __name__ == "__main__":
     main()
