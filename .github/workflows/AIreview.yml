@@ -47,7 +47,7 @@ jobs:
 
   prepare:
     name: Prepare Scala AI Review
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     outputs:
       pr_number: ${{ steps.pr.outputs.number }}
@@ -99,7 +99,7 @@ jobs:
   code-review:
     name: Scala AI Code Review
     needs: prepare
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
 
@@ -148,7 +148,7 @@ jobs:
   test-review:
     name: Scala AI Test Review
     needs: prepare
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
 
@@ -196,7 +196,7 @@ jobs:
   frontend-review:
     name: Scala AI frontend Review
     needs: prepare
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
 
