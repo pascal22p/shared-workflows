@@ -43,28 +43,41 @@ runs:
 
     - name: Cleanup review with OVH
       shell: bash
+      env:
+        REVIEW_FILE: ${{ inputs.review_file }}
+        OUTPUT_FILE: ${{ inputs.output_file }}
+        LOG_FILE: ${{ inputs.log_file }}
+        CONTEXT_FILE: ${{ inputs.context_file }}
+        MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
+        OVH_API_KEY: ${{ inputs.ovh_api_key }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
       run: |
         set -euo pipefail
 
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_cleanup_review.py" \
-          --review-file "${{ inputs.review_file }}" \
-          --output-file "${{ inputs.output_file }}" \
-          --log-file "${{ inputs.log_file }}" \
-          --context-file "${{ inputs.context_file }}" \
-          --model "${{ inputs.model }}" \
-          --reasoning-effort "${{ inputs.reasoning_effort }}" \
-          --temperature "${{ inputs.temperature }}" \
-          --api-key "${{ inputs.ovh_api_key }}" \
-          --max-tokens "${{ inputs.max_tokens }}"
+          --review-file "$REVIEW_FILE" \
+          --output-file "$OUTPUT_FILE" \
+          --log-file "$LOG_FILE" \
+          --context-file "$CONTEXT_FILE" \
+          --model "$MODEL" \
+          --reasoning-effort "$REASONING_EFFORT" \
+          --temperature "$TEMPERATURE" \
+          --api-key "$OVH_API_KEY" \
+          --max-tokens "$MAX_TOKENS"
 
     - name: Debug cleanup output
       shell: bash
+      env:
+        OUTPUT_FILE: ${{ inputs.output_file }}
+        LOG_FILE: ${{ inputs.log_file }}
       run: |
         set -euo pipefail
 
         echo "::group::Cleaned review"
 
-        output_file="review-context/${{ inputs.output_file }}"
+        output_file="review-context/$OUTPUT_FILE"
 
         if [ -f "$output_file" ]; then
           echo "✓ cleaned review exists"
@@ -80,7 +93,7 @@ runs:
 
         echo "::group::Cleanup log"
 
-        log_file="review-context/${{ inputs.log_file }}"
+        log_file="review-context/$LOG_FILE"
 
         if [ -f "$log_file" ]; then
           echo "✓ cleanup log exists"

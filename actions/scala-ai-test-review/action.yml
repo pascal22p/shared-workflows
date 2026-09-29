@@ -44,15 +44,21 @@ runs:
 
     - name: Debug AI review context
       shell: bash
+      env:
+        MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
+        PR_NUMBER: ${{ inputs.pr_number }}
       run: |
         set -euo pipefail
 
         echo "::group::Review parameters"
-        echo "model: ${{ inputs.model }}"
-        echo "reasoning_effort: ${{ inputs.reasoning_effort }}"
-        echo "temperature: ${{ inputs.temperature }}"
-        echo "max_tokens: ${{ inputs.max_tokens }}"
-        echo "pr_number: ${{ inputs.pr_number }}"
+        echo "model: $MODEL"
+        echo "reasoning_effort: $REASONING_EFFORT"
+        echo "temperature: $TEMPERATURE"
+        echo "max_tokens: $MAX_TOKENS"
+        echo "pr_number: $PR_NUMBER"
         echo "::endgroup::"
 
         echo "::group::Review context"
@@ -78,11 +84,17 @@ runs:
 
     - name: Review tests with OVH
       shell: bash
+      env:
+        MODEL: ${{ inputs.model }}
+        REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+        TEMPERATURE: ${{ inputs.temperature }}
+        OVH_API_KEY: ${{ inputs.ovh_api_key }}
+        MAX_TOKENS: ${{ inputs.max_tokens }}
       run: |
         set -euo pipefail
         python3 "$GITHUB_ACTION_PATH/scripts/run_ai_test_review.py" \
-          --model "${{ inputs.model }}" \
-          --reasoning-effort "${{ inputs.reasoning_effort }}" \
-          --temperature "${{ inputs.temperature }}" \
-          --api-key "${{ inputs.ovh_api_key }}" \
-          --max-tokens "${{ inputs.max_tokens }}"
+          --model "$MODEL" \
+          --reasoning-effort "$REASONING_EFFORT" \
+          --temperature "$TEMPERATURE" \
+          --api-key "$OVH_API_KEY" \
+          --max-tokens "$MAX_TOKENS"
